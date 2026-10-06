@@ -1,0 +1,1192 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Matriz Saciante de Andrea</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lora:wght@500;600;700&family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: tablero de mercado. Fichas con ícono arriba, y abajo la receta contada con un plato-diagrama, barras y tarjetas, casi sin párrafos. */
+:root {
+  /* Tema único claro: marfil cálido, salvia y rosa empolvado. */
+  --bg: #FBF7F2;
+  --surface: #FFFFFF;
+  --surface-2: #F5EFE7;
+  --ink: #2F2A2B;
+  --muted: #6F6668;
+  --line: #E6DCD0;
+  --nopal: #557563;
+  --nopal-ink: #FFFFFF;
+  --jamaica: #A8576B;
+  --jamaica-soft: #F9ECEE;
+  --maiz: #9A7226;
+  --aceite: #527690;
+  --bebida: #7A6AA8;
+  --antojo: #B9B2AC;
+  --night: #F1EEF7;
+  --night-ink: #2F2A45;
+  --night-accent: #5D5796;
+  --display: "Lora", Georgia, "Times New Roman", serif;
+  --body: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --radius: 14px;
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: var(--body); font-size: 16px; line-height: 1.45;
+  padding-inline: 16px; padding-block: 24px 120px;
+}
+.wrap { max-width: 760px; margin-inline: auto; display: flex; flex-direction: column; gap: 28px; }
+h1, h2, h3 { font-family: var(--display); line-height: 1.08; margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(2.1rem, 9vw, 3.2rem); font-weight: 700; letter-spacing: -0.01em; }
+h1 em { font-style: normal; color: var(--nopal); }
+h2 { font-size: 1.5rem; font-weight: 700; }
+h3 { font-size: 1.05rem; font-weight: 700; }
+p { margin: 0; }
+.eyebrow { font-size: .76rem; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; color: var(--muted); }
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 3px solid var(--jamaica); outline-offset: 2px; }
+.emoji { font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif; }
+
+/* Cabecera */
+header { display: flex; flex-direction: column; gap: 14px; }
+.ruta { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.ruta div { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 10px 8px; text-align: center; font-weight: 600; font-size: .88rem; line-height: 1.2; min-width: 0; }
+.ruta .emoji { display: block; font-size: 1.5rem; margin-bottom: 2px; }
+
+/* Matriz */
+.matriz { display: flex; flex-direction: column; gap: 18px; }
+.matriz-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px; }
+.link-btn { background: none; border: 0; padding: 4px 0; color: var(--muted); text-decoration: underline; font-size: .9rem; }
+#grupos { display: flex; flex-direction: column; gap: 18px; }
+.grupo { display: flex; flex-direction: column; gap: 8px; }
+.grupo-title { display: flex; align-items: center; gap: 8px; }
+.grupo-title h3 { color: var(--c); }
+.barra { flex: 1; height: 3px; border-radius: 2px; background: var(--c); opacity: .35; }
+.chips { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; }
+.chip {
+  position: relative; display: flex; flex-direction: column; align-items: center; gap: 3px; text-align: center;
+  min-width: 0; padding: 12px 6px 10px; border-radius: 14px;
+  background: var(--surface); border: 1.5px solid var(--line);
+  transition: border-color .15s, background .15s, transform .12s;
+}
+.chip .emoji { font-size: 1.9rem; line-height: 1; transition: transform .15s; }
+.chip:hover .emoji { transform: scale(1.06); }
+.chip:active { transform: scale(.96); }
+.chip-name { font-weight: 600; font-size: .86rem; line-height: 1.15; }
+.chip-por { font-size: .74rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.chip[aria-pressed="true"] { border-color: var(--c); background: color-mix(in srgb, var(--c) 14%, var(--surface)); }
+.chip[aria-pressed="true"]::after {
+  content: "✓"; position: absolute; top: 5px; right: 6px; width: 18px; height: 18px; border-radius: 50%;
+  background: var(--c); color: var(--surface); font-size: .7rem; font-weight: 700; display: grid; place-items: center;
+}
+.conteo { display: flex; flex-wrap: wrap; gap: 6px; }
+.conteo span { display: inline-flex; align-items: center; gap: 6px; background: var(--surface); border-radius: 999px; padding: 4px 11px; font-size: .84rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.dot { width: 10px; height: 10px; border-radius: 50%; background: var(--c); flex: none; }
+.cta {
+  width: 100%; border: 0; border-radius: var(--radius); padding: 18px 20px;
+  background: var(--nopal); color: var(--nopal-ink);
+  font-family: var(--display); font-weight: 700; font-size: 1.15rem;
+  transition: transform .1s, filter .15s;
+}
+.cta:hover { filter: brightness(1.08); }
+.cta:active { transform: scale(.985); }
+.aviso { color: var(--jamaica); font-weight: 600; font-size: .95rem; }
+
+/* Receta */
+.receta { background: var(--surface); border: 1px solid var(--line); border-radius: 22px; padding: 22px 18px; display: flex; flex-direction: column; gap: 22px; }
+.receta h2 { font-size: clamp(1.55rem, 6.5vw, 2.1rem); letter-spacing: -0.015em; margin-top: 4px; }
+.datos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.dato { background: var(--surface-2); border-radius: 14px; padding: 10px 6px; text-align: center; min-width: 0; }
+.dato b { display: block; font-family: var(--display); font-size: 1.55rem; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+.dato span { font-size: .78rem; color: var(--muted); font-weight: 600; }
+.dato.tiempo { background: var(--nopal); color: var(--nopal-ink); }
+.dato.tiempo span { color: inherit; opacity: .85; }
+.ings { display: flex; flex-wrap: wrap; gap: 6px; }
+.ing { display: inline-flex; align-items: center; gap: 6px; border: 1.5px solid var(--c, var(--line)); border-radius: 999px; padding: 4px 11px 4px 8px; font-size: .86rem; font-weight: 600; }
+.ing.sazon { border-style: dashed; font-weight: 500; border-radius: 14px; }
+
+.graficas { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+.panel { background: var(--surface-2); border-radius: var(--radius); padding: 16px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.plato-fila { display: flex; align-items: center; gap: 14px; }
+.plato { width: 128px; height: 128px; flex: none; }
+.plato text { fill: var(--ink); font-family: var(--display); }
+.leyenda { display: flex; flex-direction: column; gap: 5px; font-size: .84rem; min-width: 0; flex: 1; }
+.leyenda div { display: flex; align-items: center; gap: 6px; }
+.leyenda b { margin-left: auto; font-variant-numeric: tabular-nums; }
+.leyenda small { color: var(--muted); font-variant-numeric: tabular-nums; width: 4.2em; text-align: right; }
+.clave { font-weight: 700; font-size: .95rem; line-height: 1.25; }
+.vs { display: flex; flex-direction: column; gap: 10px; }
+.vs-fila { display: flex; flex-direction: column; gap: 4px; }
+.vs-rot { display: flex; justify-content: space-between; gap: 8px; font-size: .86rem; font-weight: 600; }
+.vs-rot b { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.vs-pista { height: 18px; border-radius: 9px; background: color-mix(in srgb, var(--ink) 8%, transparent); overflow: hidden; }
+.vs-barra { height: 100%; border-radius: 9px; background: var(--f); width: var(--w); animation: crecer .7s ease-out; }
+@keyframes crecer { from { width: 0; } }
+
+.pasos { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.paso { display: grid; grid-template-columns: 44px 1fr; gap: 12px; position: relative; padding-bottom: 14px; }
+.paso:last-child { padding-bottom: 0; }
+.paso:not(:last-child)::before { content: ""; position: absolute; left: 21px; top: 44px; bottom: 0; width: 2px; background: var(--line); }
+.paso-ico { width: 44px; height: 44px; border-radius: 50%; background: var(--surface-2); display: grid; place-items: center; font-size: 1.35rem; position: relative; }
+.paso-ico i { position: absolute; top: -4px; left: -4px; width: 18px; height: 18px; border-radius: 50%; background: var(--nopal); color: var(--nopal-ink); font: 700 .68rem var(--body); display: grid; place-items: center; }
+.paso-txt { min-width: 0; padding-top: 3px; }
+.paso-txt b { display: block; line-height: 1.2; }
+.paso-txt span { font-size: .88rem; color: var(--muted); }
+
+.porque { background: var(--jamaica-soft); border-radius: var(--radius); padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.porque h3 { color: var(--jamaica); }
+.razones { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; }
+.razon { background: var(--surface); border-radius: 12px; padding: 12px 10px; text-align: center; border-top: 4px solid var(--c); min-width: 0; }
+.razon .emoji { font-size: 1.7rem; line-height: 1; }
+.razon b { display: block; font-family: var(--display); font-size: 1rem; line-height: 1.15; margin: 6px 0 3px; }
+.razon span { font-size: .8rem; color: var(--muted); line-height: 1.25; display: block; }
+.cierre { font-weight: 600; text-align: center; }
+.nota { color: var(--muted); font-size: .86rem; }
+.otra { align-self: center; background: none; border: 2px solid var(--nopal); color: var(--nopal); border-radius: 999px; padding: 10px 20px; font-weight: 700; }
+.otra:hover { background: color-mix(in srgb, var(--nopal) 10%, transparent); }
+
+.cuidado { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+.cuidado div { border: 1.5px solid var(--line); border-radius: 14px; padding: 12px; min-width: 0; }
+.cuidado b { display: block; font-family: var(--display); font-size: 1.35rem; font-weight: 700; color: var(--nopal); line-height: 1.05; }
+.cuidado span { font-size: .84rem; color: var(--muted); }
+
+/* Mi día */
+.dia { display: flex; flex-direction: column; gap: 14px; }
+.dia-caja { background: var(--surface); border: 1px solid var(--line); border-radius: 22px; padding: 18px; display: flex; flex-direction: column; gap: 16px; }
+.metas { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px 16px; }
+.meta { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.meta:first-child { grid-column: 1 / -1; }
+.meta-rot { display: flex; justify-content: space-between; gap: 8px; font-size: .86rem; font-weight: 600; }
+.meta-rot b { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.meta-pista { position: relative; height: 14px; border-radius: 7px; background: color-mix(in srgb, var(--ink) 8%, transparent); overflow: hidden; }
+.meta:first-child .meta-pista { height: 20px; border-radius: 10px; }
+.meta-barra { height: 100%; border-radius: inherit; background: var(--c); transition: width .4s ease-out; }
+.meta-pista i { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--ink); opacity: .45; }
+.meta small { font-size: .78rem; color: var(--muted); font-weight: 600; }
+.meta.pasado small, .meta.pasado .meta-rot b { color: var(--jamaica); }
+.meta.pasado .meta-barra { background: var(--jamaica); }
+.foto-acciones { display: flex; flex-wrap: wrap; gap: 8px; }
+.foto-btn { flex: 1 1 200px; border: 2px solid var(--jamaica); border-radius: var(--radius); padding: 13px 16px; background: var(--jamaica); color: var(--surface); font-family: var(--display); font-weight: 700; font-size: 1.02rem; }
+.foto-btn.sec { flex: 0 1 auto; background: none; color: var(--jamaica); }
+.foto-btn:disabled, .otra:disabled { opacity: .55; cursor: default; }
+.analisis { background: var(--surface-2); border-radius: var(--radius); padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+.analisis-top { display: flex; gap: 12px; align-items: center; }
+.analisis-top img { width: 84px; height: 84px; object-fit: cover; border-radius: 12px; flex: none; }
+.analisis-top div { min-width: 0; }
+.macros { display: grid; grid-template-columns: repeat(auto-fit, minmax(64px, 1fr)); gap: 6px; }
+.macro { background: var(--surface); border-radius: 10px; padding: 8px 4px; text-align: center; min-width: 0; }
+.macro b { display: block; font-family: var(--display); font-size: 1.15rem; font-weight: 700; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.macro span { font-size: .72rem; color: var(--muted); font-weight: 600; }
+.veredicto { font-weight: 700; }
+.veredicto.mal { color: var(--jamaica); }
+.receta-acciones { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.otra.lleno { background: var(--nopal); color: var(--nopal-ink); }
+.otra.lleno:hover { background: var(--nopal); filter: brightness(1.08); }
+.registro { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.registro:empty { display: none; }
+.registro li { display: flex; align-items: center; gap: 10px; background: var(--surface-2); border-radius: 12px; padding: 8px 8px 8px 12px; font-size: .9rem; }
+.registro span { flex: 1; min-width: 0; }
+.registro b { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.registro button { border: 0; background: none; color: var(--muted); font-size: 1.2rem; line-height: 1; padding: 4px 8px; border-radius: 8px; }
+.config { background: var(--surface-2); }
+.config-in { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+.config-fila { display: flex; gap: 8px; }
+.config-fila input { flex: 1; min-width: 0; font: inherit; color: inherit; background: var(--surface); border: 1.5px solid var(--line); border-radius: 10px; padding: 9px 12px; }
+.config-fila button { border: 0; border-radius: 10px; padding: 9px 16px; background: var(--nopal); color: var(--nopal-ink); font-weight: 700; }
+
+/* Sugerencias y editor de la matriz */
+.sugerencias { background: var(--jamaica-soft); border-radius: var(--radius); padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+.sugerencias h3 { color: var(--jamaica); }
+.sugerencias .ing { background: var(--surface); }
+.sug { display: flex; flex-direction: column; gap: 5px; }
+.sug b { font-size: .92rem; }
+.sugerencias .otra { align-self: flex-start; }
+.matriz-btns { display: flex; gap: 16px; }
+.chip.nuevo { border-style: dashed; border-color: var(--c); color: var(--c); justify-content: center; font-size: 1.4rem; line-height: 1; }
+.editando .chip:not(.nuevo)::after {
+  content: "✎"; position: absolute; top: 5px; right: 6px; width: 18px; height: 18px; border-radius: 50%;
+  background: var(--surface-2); color: var(--ink); font-size: .7rem; font-weight: 700; display: grid; place-items: center;
+}
+.campos { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; }
+.campo { display: flex; flex-direction: column; gap: 4px; font-size: .82rem; font-weight: 600; min-width: 0; }
+.campo input { font: inherit; font-weight: 400; color: inherit; background: var(--surface); border: 1.5px solid var(--line); border-radius: 10px; padding: 9px 12px; min-width: 0; width: 100%; }
+.campo input:disabled { opacity: .6; }
+
+/* Emergencia */
+.sos-bar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 5;
+  padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
+  background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(8px);
+  border-top: 1px solid var(--line);
+}
+.sos-btn {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  width: 100%; max-width: 760px; margin-inline: auto; border: 0; border-radius: var(--radius);
+  padding: 14px 18px; background: var(--night-accent); color: #FFFFFF; font-weight: 700; font-size: 1rem;
+}
+.luna { width: 18px; height: 18px; border-radius: 50%; box-shadow: inset -6px -2px 0 0 #F6D873; flex: none; }
+dialog {
+  border: 0; padding: 0; width: min(560px, 100%); max-width: 100%; max-height: 92dvh;
+  background: var(--night); color: var(--night-ink); border-radius: 22px;
+}
+dialog::backdrop { background: rgba(47, 42, 69, .4); }
+@media (max-width: 600px) { dialog { margin: auto 0 0; border-radius: 22px 22px 0 0; } }
+.sos { padding: 20px 18px calc(20px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; gap: 14px; }
+.sos-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.sos .eyebrow { color: var(--muted); }
+.cerrar { background: var(--surface); border: 0; color: var(--night-ink); border-radius: 999px; padding: 6px 14px; font-weight: 600; flex: none; }
+.estrategia { background: var(--surface); border-radius: var(--radius); padding: 18px 16px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; }
+.estrategia .emoji { font-size: 3.2rem; line-height: 1.1; }
+.estrategia h3 { font-size: 1.4rem; color: var(--night-accent); }
+.cero { font-size: .76rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; background: color-mix(in srgb, var(--night-accent) 12%, transparent); color: var(--night-accent); border-radius: 999px; padding: 2px 10px; }
+.puntos { display: flex; gap: 5px; margin-top: 6px; }
+.puntos i { width: 7px; height: 7px; border-radius: 50%; background: color-mix(in srgb, var(--night-ink) 18%, transparent); }
+.puntos i.on { background: var(--night-accent); }
+.sos-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.sos-actions button { flex: 1 1 170px; border-radius: 999px; padding: 11px 16px; font-weight: 700; border: 1.5px solid var(--night-accent); background: transparent; color: var(--night-accent); }
+.sos-actions .primario { background: var(--night-accent); color: #FFFFFF; }
+.respira { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.circulo { width: 120px; height: 120px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #8F89C4, #5D5796); transform: scale(.6); transition: transform 4s ease-in-out; display: grid; place-items: center; }
+.circulo span { font-family: var(--display); font-size: 2rem; font-weight: 700; color: #fff; font-variant-numeric: tabular-nums; }
+.respira p { font-weight: 600; min-height: 1.5em; text-align: center; }
+.hambres { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.hambre { background: var(--surface); border-radius: 14px; padding: 12px 10px; font-size: .84rem; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.hambre b { font-family: var(--display); font-size: 1rem; }
+.hambre em { font-style: normal; font-weight: 700; color: var(--night-accent); margin-top: 4px; }
+details { background: var(--surface); border-radius: 14px; padding: 12px 14px; }
+summary { font-weight: 700; cursor: pointer; }
+.frases { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+.frases span { background: var(--night); border-radius: 14px 14px 14px 4px; padding: 8px 12px; font-size: .92rem; align-self: flex-start; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+
+<main class="wrap">
+  <header>
+    <p class="eyebrow" id="saludo">Hola, Andrea</p>
+    <h1>Andrea, llénate de verdad, <em>sin sumar de más</em>.</h1>
+    <div class="ruta">
+      <div><span class="emoji">👆</span>Marca lo que tienes</div>
+      <div><span class="emoji">⚡</span>Genera tu receta</div>
+      <div><span class="emoji">🍽️</span>Come en 15 min</div>
+    </div>
+  </header>
+
+  <section class="dia" aria-labelledby="t-dia">
+    <div class="matriz-head">
+      <h2 id="t-dia">El día de Andrea</h2>
+      <button class="link-btn" id="reiniciar-dia" type="button">Reiniciar día</button>
+    </div>
+    <div class="dia-caja">
+      <div class="metas" id="metas"></div>
+      <div class="sugerencias" id="sugerencias" aria-live="polite"></div>
+      <div class="foto-acciones">
+        <button class="foto-btn" id="tomar-foto" type="button"><span class="emoji" aria-hidden="true">📷</span> Tomar foto de mi comida</button>
+        <button class="foto-btn sec" id="elegir-foto" type="button">Elegir de la galería</button>
+      </div>
+      <input type="file" id="foto-camara" accept="image/*" capture="environment" hidden>
+      <input type="file" id="foto-galeria" accept="image/*" hidden>
+      <p class="nota" id="foto-estado" role="status" hidden></p>
+      <div id="analisis"></div>
+      <ul class="registro" id="registro"></ul>
+      <details class="config" id="config">
+        <summary>Clave de Gemini para analizar fotos</summary>
+        <div class="config-in">
+          <p class="nota">Consigue una gratis en aistudio.google.com/apikey. Se guarda solo en este dispositivo y solo se envía a Google.</p>
+          <div class="config-fila">
+            <input type="password" id="gemini-key" placeholder="Pega tu clave aquí" autocomplete="off" aria-label="Clave de Gemini">
+            <button type="button" id="guardar-key">Guardar</button>
+          </div>
+        </div>
+      </details>
+    </div>
+  </section>
+
+  <section class="matriz" aria-labelledby="t-matriz">
+    <div class="matriz-head">
+      <h2 id="t-matriz">La Matriz</h2>
+      <div class="matriz-btns">
+        <button class="link-btn" id="editar-matriz" type="button" aria-pressed="false">Editar alimentos</button>
+        <button class="link-btn" id="limpiar" type="button">Limpiar</button>
+      </div>
+    </div>
+    <p class="nota" id="edita-nota" hidden>Toca un alimento para cambiar sus valores o quitarlo, o usa ＋ para agregar uno tuyo. <button class="link-btn" id="restaurar" type="button">Restaurar la matriz original</button></p>
+    <p class="nota" id="edita-estado" role="status" hidden></p>
+    <div id="grupos"></div>
+    <div class="conteo" id="conteo" aria-live="polite"></div>
+    <p class="aviso" id="aviso" hidden></p>
+    <button class="cta" id="generar" type="button">¡Generar mi receta saciante y exprés!</button>
+  </section>
+
+  <section id="resultado" aria-live="polite"></section>
+
+  <footer class="cuidado">
+    <div><b>½ kg</b><span>por semana es el ritmo sano: 5 kg en 8 a 10 semanas.</span></div>
+    <div><b>3 + 2</b><span>comidas y colaciones al día. No te quedes corta.</span></div>
+    <div><b>20 min</b><span>de siesta bajan el hambre del desvelo.</span></div>
+    <div><b>Lactancia</b><span>Si aún amamantas, consulta antes de recortar.</span></div>
+  </footer>
+</main>
+
+<div class="sos-bar">
+  <button class="sos-btn" id="abrir-sos" type="button"><span class="luna" aria-hidden="true"></span>Me ganó la ansiedad en el turno de noche</button>
+</div>
+
+<dialog id="sos" aria-labelledby="sos-titulo">
+  <div class="sos">
+    <div class="sos-top">
+      <div>
+        <p class="eyebrow">Emergencia de madrugada</p>
+        <h2 id="sos-titulo">Andrea, es cansancio, no falta de voluntad.</h2>
+      </div>
+      <button class="cerrar" id="cerrar-sos" type="button">Cerrar</button>
+    </div>
+    <div class="estrategia" id="estrategia"></div>
+    <div class="respira" id="respira" hidden>
+      <div class="circulo" id="circulo"><span id="cuenta">4</span></div>
+      <p id="fase">Inhala por la nariz</p>
+    </div>
+    <div class="sos-actions">
+      <button class="primario" id="otra-estrategia" type="button">Otra estrategia</button>
+      <button id="btn-respira" type="button">Respirar 1 minuto</button>
+    </div>
+    <div class="hambres">
+      <div class="hambre"><b><span class="emoji">🌙</span> Emocional</b><span>Llega de golpe</span><span>Pide algo específico</span><span>Viene con cansancio</span><em>Usa una estrategia</em></div>
+      <div class="hambre"><b><span class="emoji">🍽️</span> Real</b><span>Llega poco a poco</span><span>Gruñe el estómago</span><span>Más de 3 h sin comer</span><em>Come de tu matriz</em></div>
+    </div>
+    <details>
+      <summary>Qué decir cuando en casa insisten</summary>
+      <div class="frases">
+        <span>Gracias, se ve rico. Ahorita no, ya cené.</span>
+        <span>Guárdame un poquito para mañana.</span>
+        <span>Como ligero para aguantar el turno sin sueño.</span>
+        <span>Te acompaño con mi té mientras cenas.</span>
+      </div>
+    </details>
+  </div>
+</dialog>
+
+<dialog id="editor" aria-labelledby="editor-titulo">
+  <form class="sos" id="editor-form" method="dialog">
+    <div class="sos-top">
+      <div>
+        <p class="eyebrow" id="editor-grupo"></p>
+        <h2 id="editor-titulo">Editar alimento</h2>
+      </div>
+      <button class="cerrar" id="editor-cerrar" type="button">Cerrar</button>
+    </div>
+    <div class="campos">
+      <label class="campo"><span>Nombre</span><input id="ed-n" maxlength="30" required autocomplete="off"></label>
+      <label class="campo"><span>Porción</span><input id="ed-por" maxlength="20" required placeholder="1 taza" autocomplete="off"></label>
+      <label class="campo"><span>Ícono (emoji)</span><input id="ed-e" maxlength="4" placeholder="🍽️" autocomplete="off"></label>
+      <label class="campo"><span>Calorías (opcional)</span><input id="ed-kcal" type="number" min="0" max="900" step="1" inputmode="numeric"></label>
+      <label class="campo"><span>Proteína (g)</span><input id="ed-prot" type="number" min="0" max="99" step="0.5" inputmode="decimal"></label>
+      <label class="campo"><span>Carbohidratos (g)</span><input id="ed-carb" type="number" min="0" max="99" step="0.5" inputmode="decimal"></label>
+      <label class="campo"><span>Fibra (g)</span><input id="ed-fibra" type="number" min="0" max="99" step="0.5" inputmode="decimal"></label>
+      <label class="campo"><span>Grasa (g)</span><input id="ed-grasa" type="number" min="0" max="99" step="0.5" inputmode="decimal"></label>
+    </div>
+    <p class="nota" id="editor-nota"></p>
+    <div class="sos-actions">
+      <button class="primario" id="editor-guardar" type="submit">Guardar</button>
+      <button id="editor-quitar" type="button">Quitar de mi matriz</button>
+    </div>
+  </form>
+</dialog>
+
+<script>
+/* v = tazas que ocupa en el plato (aprox.) */
+const GRUPOS = [
+  { cat: 'prote', titulo: 'Proteínas magras', corto: 'Proteína', color: 'var(--jamaica)', items: [
+    { id: 'atun', e: '🐟', n: 'Atún en agua', corto: 'atún', por: '1 lata', kcal: 110, prot: 25, v: .5, frio: '1 lata de atún escurrida', r: ['25 g de proteína', 'Hambre apagada por horas'] },
+    { id: 'claras', e: '🥚', n: 'Claras', corto: 'claras', por: '4 claras', kcal: 70, prot: 14, v: .75, frio: '4 claras', r: ['Medio sartén por 70 kcal', 'Se inflan al cocinarse'] },
+    { id: 'pollo', e: '🍗', n: 'Pollo deshebrado', corto: 'pollo', por: '1 taza', kcal: 165, prot: 30, v: 1, frio: '1 taza de pollo deshebrado', r: ['30 g de proteína', 'Mucho que masticar'] },
+    { id: 'requeson', e: '🧀', n: 'Requesón', corto: 'requesón', por: '½ taza', kcal: 140, prot: 12, v: .5, frio: '½ taza de requesón', r: ['Cremoso sin crema', 'Calma el antojo de grasa'] },
+    { id: 'pavo', e: '🦃', n: 'Jamón de pavo', corto: 'pavo', por: '4 rebanadas', kcal: 80, prot: 13, v: .5, frio: '4 rebanadas de pavo en tiritas', r: ['Listo en 0 minutos', 'Proteína sin cocinar'] },
+    { id: 'surimi', e: '🦀', n: 'Surimi', corto: 'surimi', por: '4 barritas', kcal: 75, prot: 7, v: .5, frio: '4 barritas de surimi deshebradas', r: ['Rinde muchísimo', 'Antojo de mariscos, 75 kcal'] },
+    { id: 'panela', e: '🧀', n: 'Queso panela', corto: 'panela', por: '60 g', kcal: 130, prot: 11, v: .4, frio: '60 g de queso panela en cubos', r: ['Queso que sí llena', 'Se dora sin derretirse'] },
+    { id: 'sardina', e: '🐠', n: 'Sardina en jitomate', corto: 'sardina', por: '1 lata chica', kcal: 150, prot: 17, v: .5, frio: '1 lata chica de sardina desmenuzada', r: ['Omega 3 de lata', 'Grasa buena que calma el antojo'] },
+    { id: 'camaron', e: '🦐', n: 'Camarones cocidos', corto: 'camarones', por: '100 g', kcal: 100, prot: 20, v: .6, frio: '100 g de camarones cocidos', r: ['20 g de proteína', 'Casi sin grasa'] }
+  ]},
+  { cat: 'carb', titulo: 'Carbohidratos de bajo IG', corto: 'Base', color: 'var(--maiz)', items: [
+    { id: 'tortillas', e: '🌮', n: 'Tortillas nopal o maíz', corto: 'tortillas', por: '2 piezas', kcal: 80, prot: 2, v: .4, r: ['Tacos de verdad', 'No se siente a dieta'] },
+    { id: 'coliflor', e: '🥦', n: 'Arroz de coliflor', corto: 'coliflor', por: '1½ tazas', kcal: 40, prot: 3, v: 1.5, r: ['6 veces menos calorías', 'Que un plato de arroz'] },
+    { id: 'shirataki', e: '🍜', n: 'Fideos shirataki', corto: 'fideos', por: '1 paquete', kcal: 15, prot: 0, v: 1.5, r: ['Plato hondo por 15 kcal', 'Fibra que se expande'] },
+    { id: 'avena', e: '🥣', n: 'Avena', corto: 'avena', por: '¼ taza', kcal: 95, prot: 3, v: .5, r: ['Energía pareja', 'Sin bajón a las 3 a. m.'] },
+    { id: 'tortitas', e: '🍘', n: 'Tortitas de arroz', corto: 'tostadas', por: '2 piezas', kcal: 70, prot: 1, v: .5, r: ['Crujido antiestrés', 'Morder fuerte descarga tensión'] },
+    { id: 'pan', e: '🍞', n: 'Pan integral', corto: 'pan integral', por: '2 rebanadas', kcal: 140, prot: 6, v: .5, r: ['Torta sin culpa', 'Fibra que tarda en digerirse'] },
+    { id: 'lentejas', e: '🍲', n: 'Lentejas', corto: 'lentejas', por: '½ taza', kcal: 115, prot: 9, v: .5, r: ['Fibra + proteína', 'Digestión lenta, sin bajón'] },
+    { id: 'frijoles', e: '🫘', n: 'Frijoles de la olla', corto: 'frijoles', por: '½ taza', kcal: 115, prot: 7, v: .5, r: ['7 g de fibra', 'Sin freír, llenan igual'] },
+    { id: 'camote', e: '🍠', n: 'Camote cocido', corto: 'camote', por: '½ taza', kcal: 90, prot: 2, v: .5, suma: ['🍠', 'Suma el camote', '½ taza en cubos, ya cocido. 2 minutos hasta dorar.'], r: ['Dulce que no dispara', 'Energía lenta para el turno'] },
+    { id: 'elote', e: '🌽', n: 'Granos de elote', corto: 'elote', por: '½ taza', kcal: 70, prot: 2, v: .5, suma: ['🌽', 'Suma el elote', '½ taza de granos. 2 minutos hasta dorar.'], r: ['Antojo de esquite', 'Sin mayonesa, 70 kcal'] }
+  ]},
+  { cat: 'fibra', titulo: 'Fibra y volumen', corto: 'Volumen', color: 'var(--nopal)', items: [
+    { id: 'crudos', e: '🥕', n: 'Pepino, jícama o apio', corto: 'pepino y jícama', por: '1½ tazas', kcal: 30, prot: 1, v: 1.5, r: ['Casi pura agua', 'Botana libre mientras cocinas'] },
+    { id: 'hojas', e: '🥬', n: 'Espinacas o lechuga', corto: 'espinacas', por: '2 tazas', kcal: 15, prot: 2, v: 2, r: ['Plato más grande', 'Tus ojos ven «comí mucho»'] },
+    { id: 'calabacitas', e: '🥒', n: 'Calabacitas', corto: 'calabacitas', por: '1 mediana', kcal: 30, prot: 2, v: 1, corte: '1 calabacita en medias lunas', r: ['Doble de guiso', 'Por solo 30 kcal'] },
+    { id: 'nopales', e: '🌵', n: 'Nopales', corto: 'nopales', por: '1 taza', kcal: 25, prot: 2, v: 1, corte: '1 taza de nopales en tiritas', r: ['Fibra que se hincha', 'De lo que más llena'] },
+    { id: 'champinones', e: '🍄', n: 'Champiñones', corto: 'champiñones', por: '1 taza', kcal: 20, prot: 3, v: .75, corte: '1 taza de champiñones rebanados', r: ['Sabor a carne', '20 kcal la taza'] },
+    { id: 'gelatina', e: '🍮', n: 'Gelatina light', corto: 'gelatina', por: '1 taza', kcal: 10, prot: 2, v: 1, r: ['Postre de 10 kcal', 'Señal de «ya terminé»'] },
+    { id: 'brocoli', e: '🥦', n: 'Brócoli', corto: 'brócoli', por: '1 taza', kcal: 30, prot: 3, v: 1, corte: '1 taza de brócoli en ramitos chicos', r: ['Mucho que masticar', '30 kcal la taza'] },
+    { id: 'ejotes', e: '🫛', n: 'Ejotes', corto: 'ejotes', por: '1 taza', kcal: 35, prot: 2, v: 1, corte: '1 taza de ejotes en trozos', r: ['Fibra crujiente', 'Rinden el guiso al doble'] },
+    { id: 'pimiento', e: '🫑', n: 'Pimiento', corto: 'pimiento', por: '1 pieza', kcal: 30, prot: 1, v: 1, corte: '1 pimiento en tiras', r: ['Color y dulzor', 'Sabor a fajitas sin grasa'] }
+  ]},
+  { cat: 'grasa', titulo: 'Grasas mínimas', corto: 'Grasa', color: 'var(--aceite)', items: [
+    { id: 'spray', e: '💨', n: 'Spray de aceite', corto: 'spray', por: '2 disparos', kcal: 5, prot: 0, v: 0, r: ['115 kcal ahorradas', 'Contra una cucharada de aceite'] },
+    { id: 'oliva', e: '💧', n: 'Aceite de oliva', corto: 'aceite de oliva', por: '1 cdita', kcal: 40, prot: 0, v: .02, r: ['Sabor que dura', 'Una cucharadita basta'] },
+    { id: 'chia', e: '🌱', n: 'Chía', corto: 'chía', por: '1 cdita', kcal: 25, prot: 1, v: .02, r: ['Crece 10 veces', 'Sigue llenando después'] },
+    { id: 'aguacate', e: '🥑', n: 'Aguacate medido', corto: 'aguacate', por: '2 rebanadas', kcal: 50, prot: 1, v: .15, r: ['Cremosidad medida', 'Grasa buena, comida completa'] },
+    { id: 'aceitunas', e: '🫒', n: 'Aceitunas', corto: 'aceitunas', por: '5 piezas', kcal: 25, prot: 0, v: .1, r: ['Sal intensa', '25 kcal en todo el plato'] },
+    { id: 'cacahuates', e: '🥜', n: 'Pocos cacahuates', corto: 'cacahuates', por: '10 piezas', kcal: 60, prot: 3, v: .05, r: ['Crujido tostado', 'Contados, no de la bolsa'] },
+    { id: 'pepitas', e: '🎃', n: 'Pepitas', corto: 'pepitas', por: '1 cda', kcal: 55, prot: 3, v: .05, toque: '1 cucharada de pepitas tostadas', r: ['Crujido con magnesio', 'Una cucharada, no un puño'] },
+    { id: 'nuez', e: '🌰', n: 'Nuez', corto: 'nuez', por: '3 mitades', kcal: 40, prot: 1, v: .03, toque: '3 mitades de nuez troceadas', r: ['Grasa buena medida', 'Tres mitades bastan'] }
+  ]},
+  { cat: 'bebida', titulo: 'Bebidas sin azúcar', corto: 'Bebida', color: 'var(--bebida)', items: [
+    { id: 'refresco', e: '🥤', n: 'Refresco sin azúcar', corto: 'refresco sin azúcar', por: '1 vaso de', kcal: 0, prot: 0, v: 0, txt: 'Bien frío y con mucho hielo. Sabor dulce, 0 kcal.' },
+    { id: 'mineral', e: '🫧', n: 'Agua mineral con limón', corto: 'agua mineral con limón', por: '1 vaso de', kcal: 0, prot: 0, v: 0, txt: 'Con hielo y una pizca de sal. Las burbujas llenan.' },
+    { id: 'jamaica', e: '🌺', n: 'Agua de jamaica sin azúcar', corto: 'agua de jamaica', por: '1 vaso de', kcal: 0, prot: 0, v: 0, txt: 'Sin azúcar o con endulzante. Fresca y de casa.' },
+    { id: 'te', e: '☕', n: 'Té o café sin azúcar', corto: 'té o café sin azúcar', por: '1 taza de', kcal: 0, prot: 0, v: 0, txt: 'Caliente y a sorbos. Si vas a dormir pronto, sin cafeína.' }
+  ]}
+];
+/* gramos por porción (aprox.): [carbohidratos, fibra, grasa] */
+const MACROS = {
+  atun: [0, 0, 1], claras: [1, 0, 0], pollo: [0, 0, 4], requeson: [4, 0, 8], pavo: [2, 0, 2], surimi: [10, 0, .5],
+  panela: [2, 0, 9], sardina: [2, 0, 8], camaron: [0, 0, 1.5],
+  tortillas: [16, 3, 1], coliflor: [8, 3, 0], shirataki: [3, 3, 0], avena: [17, 2.5, 2], tortitas: [15, .5, .5],
+  pan: [24, 4, 2], lentejas: [20, 8, .5], frijoles: [20, 7, .5], camote: [21, 3, 0], elote: [15, 2, 1],
+  crudos: [7, 3, 0], hojas: [2, 1.5, 0], calabacitas: [6, 2, 0], nopales: [5, 3, 0], champinones: [3, 1, 0],
+  brocoli: [6, 2.5, 0], ejotes: [7, 3, 0], pimiento: [7, 2.5, 0],
+  spray: [0, 0, .5], oliva: [0, 0, 4.5], chia: [2, 1.5, 1.5], aguacate: [3, 2, 4.5], aceitunas: [1, .5, 2.5],
+  cacahuates: [2, 1, 5], pepitas: [1, .5, 4.5], nuez: [1, .5, 4]
+};
+/* IDX se llena en armar(), con la base más los cambios guardados */
+const IDX = {}, CAT = {}, BASE = {};
+GRUPOS.forEach(g => { CAT[g.cat] = g; g.base = g.items; g.base.forEach(it => { it.cat = g.cat; BASE[it.id] = { kcal: it.kcal, prot: it.prot, m: MACROS[it.id] || [0, 0, 0] }; }); });
+
+const SAZONES = {
+  limon:    { suf: 'al limón con chilito', txt: 'jugo de 1 limón, chile en polvo y sal' },
+  verde:    { suf: 'en salsa verde', txt: '3 cucharadas de salsa verde y cilantro' },
+  mex:      { suf: 'a la mexicana', txt: 'jitomate, cebolla y chile serrano picados' },
+  roja:     { suf: 'en salsa ranchera', txt: '3 cucharadas de salsa roja y cebolla picada' },
+  ajo:      { suf: 'al mojo de ajo', txt: '1 ajo picado, pimienta y limón' },
+  chipotle: { suf: 'al chipotle', txt: '1 cucharadita de chipotle adobado, jitomate y orégano' }
+};
+const MODOS = {
+  tortillas:     { nombres: ['Tacos', 'Taquitos de comal'], con: 'de', saz: ['verde', 'mex', 'chipotle', 'roja', 'limon'], min: 10 },
+  coliflor:      { nombres: ['Arroz rojo de coliflor', 'Arroz a la mexicana de coliflor'], con: 'con', saz: ['roja', 'mex', 'verde', 'chipotle'], min: 12 },
+  shirataki:     { nombres: ['Fideo seco ligero', 'Sopa seca de fideo'], con: 'con', saz: ['chipotle', 'roja', 'mex'], min: 12 },
+  tortitas:      { nombres: ['Tostadas', 'Tostaditas crujientes'], con: 'de', saz: ['limon', 'mex', 'chipotle', 'verde'], min: 8 },
+  pan:           { nombres: ['Torta abierta', 'Pan tostado estilo mollete'], con: 'de', saz: ['mex', 'chipotle', 'verde', 'limon'], min: 8 },
+  lentejas:      { nombres: ['Lentejas guisadas', 'Cazuelita de lentejas'], con: 'con', saz: ['mex', 'chipotle', 'roja', 'ajo'], min: 9 },
+  frijoles:      { nombres: ['Frijoles de la olla', 'Cazuelita de frijoles'], con: 'con', saz: ['mex', 'chipotle', 'roja', 'verde'], min: 9 },
+  camote:        { nombres: ['Salteado de camote', 'Sartén de camote'], con: 'con', saz: ['chipotle', 'ajo', 'mex', 'limon'], min: 12 },
+  elote:         { nombres: ['Esquites ligeros', 'Elote de sartén'], con: 'con', saz: ['limon', 'chipotle', 'mex'], min: 10 },
+  plato:         { nombres: ['Guisado ligero', 'Cazuelita'], frios: ['Salpicón fresco', 'Ensalada de mercado'], con: 'de', saz: ['limon', 'mex', 'verde', 'roja', 'ajo', 'chipotle'], min: 8 },
+  tortitasAvena: { nombres: ['Tortitas doradas', 'Tortitas de sartén'], con: 'de', saz: ['chipotle', 'roja', 'ajo', 'limon'], min: 15 },
+  avenaSalada:   { nombres: ['Avena guisada', 'Avena salada cremosa'], con: 'con', saz: ['mex', 'roja', 'chipotle', 'ajo'], min: 12 }
+};
+const ANTOJOS = [
+  { n: '3 tacos dorados con crema', k: 600 },
+  { n: 'Torta de milanesa', k: 750 },
+  { n: 'Quesadilla frita y refresco', k: 650 }
+];
+const CIERRES = [
+  'No te estás quitando nada: te estás llenando.',
+  'Siéntate a comerlo. Diez minutos con calma llenan más que picar de pie.',
+  'Con el estómago ocupado, decir «ahorita no» es mucho más fácil.',
+  'Elegiste cuidarte en un día pesado. Eso cuenta más que la báscula.'
+];
+const ESTRATEGIAS = [
+  { e: '🍵', t: 'Té caliente, taza grande', k: '0 kcal', p: 'Manzanilla, canela o hierbabuena. Dos manos en la taza, sorbos lentos, 5 minutos.' },
+  { e: '🍋', t: 'Agua mineral preparada', k: '0 kcal', p: 'Hielo, limón, pizca de sal y chile en el borde. Las burbujas llenan.' },
+  { e: '⏱️', t: 'Regla de los 10 minutos', k: '0 kcal', p: 'Alarma y un vaso de agua. El antojo sube, llega al tope y baja solo.' },
+  { e: '🥤', t: 'Refresco sin azúcar con hielo', k: '0 kcal', p: 'Vaso alto, mucho hielo, sorbos lentos. Si vas a dormir pronto, sin cafeína.' },
+  { e: '🍬', t: 'Dulce sin azúcar', k: '0 a 10 kcal', p: 'Chicle de menta, té de canela con vainilla o hielos de jamaica sin azúcar.' },
+  { e: '🪥', t: 'Lávate los dientes', k: '0 kcal', p: 'La menta avisa que la cocina cerró, y de paso te despierta.' },
+  { e: '🌶️', t: 'Caldito de emergencia', k: '0 a 5 kcal', p: 'Agua muy caliente con limón, sal, piquín y orégano. Sabe a consomé.' },
+  { e: '💦', t: 'Agua fría y 2 minutos de pie', k: '0 kcal', p: 'Cara y muñecas mojadas, estira el cuello, camina. A veces es sueño, no hambre.' },
+  { e: '💬', t: 'Ponle nombre', k: '0 kcal', p: 'Di: «estoy cansada, no hambrienta». Nombrarlo le baja la fuerza.' }
+];
+
+const mezclar = a => a.map(v => [Math.random(), v]).sort((x, y) => x[0] - y[0]).map(v => v[1]);
+const alAzar = a => a[Math.floor(Math.random() * a.length)];
+const lista = a => a.length < 2 ? (a[0] || '') : a.slice(0, -1).join(', ') + ' y ' + a[a.length - 1];
+const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+const tazas = v => { const r = Math.round(v * 2) / 2, n = Math.floor(r); return (n || '') + (r % 1 ? '½' : '') || '½'; };
+
+/* ---------- matriz editable: valores cambiados, alimentos ocultos y alimentos propios ---------- */
+const CLAVE_MATRIZ = 'matriz-saciante-ajustes';
+const V_PROPIO = { prote: .5, carb: .5, fibra: 1, grasa: .05, bebida: 0 };
+const limpio = (s, n) => String(s == null ? '' : s).replace(/[<>&"'`]/g, '').trim().slice(0, n);
+const medida = (x, max) => Math.min(max, Math.max(0, Math.round((+x || 0) * 2) / 2));
+let ajustes = { ocultos: [], cambios: {}, propios: [] };
+try {
+  const g = JSON.parse(localStorage.getItem(CLAVE_MATRIZ));
+  if (g && Array.isArray(g.ocultos) && Array.isArray(g.propios) && g.cambios && typeof g.cambios === 'object') ajustes = g;
+} catch (e) {}
+const guardarAjustes = () => { try { localStorage.setItem(CLAVE_MATRIZ, JSON.stringify(ajustes)); } catch (e) {} };
+/* completa un alimento propio con los textos que usa el generador */
+function propio(p) {
+  const n = limpio(p.n, 30) || 'Alimento', por = limpio(p.por, 20) || '1 porción', corto = n.toLowerCase(), cant = `${por} de ${corto}`;
+  const it = { id: p.id, cat: p.cat, e: limpio(p.e, 4) || '🍽️', n, corto, por, propio: true, v: V_PROPIO[p.cat],
+    kcal: Math.round(medida(p.kcal, 900)), prot: medida(p.prot, 99), m: [0, 1, 2].map(i => medida((p.m || [])[i], 99)) };
+  if (p.cat === 'prote') { it.frio = cant; it.r = [`${it.prot} g de proteína`, 'De tu propia matriz']; }
+  if (p.cat === 'carb') { it.suma = [it.e, 'Suma ' + corto, `${cap(por)}, ya listo. 2 minutos.`]; it.r = ['Tu base elegida', 'Medida, no al tanteo']; }
+  if (p.cat === 'fibra') { it.corte = cant; it.r = ['Volumen extra', `Solo ${it.kcal} kcal`]; }
+  if (p.cat === 'grasa') { it.toque = cant; it.r = ['Toque medido', `${it.kcal} kcal contadas`]; }
+  if (p.cat === 'bebida') { it.por = por + ' de'; it.txt = 'A sorbos y sin azúcar añadida.'; }
+  return it;
+}
+function armar() {
+  Object.keys(IDX).forEach(k => delete IDX[k]);
+  GRUPOS.forEach(g => {
+    g.base.forEach(it => {
+      const c = ajustes.cambios[it.id] || BASE[it.id];
+      it.kcal = Math.round(medida(c.kcal, 900)); it.prot = medida(c.prot, 99); it.m = [0, 1, 2].map(i => medida((c.m || [])[i], 99));
+    });
+    g.items = g.base.filter(it => !ajustes.ocultos.includes(it.id))
+      .concat(ajustes.propios.filter(p => p && p.cat === g.cat && /^x\d+$/.test(p.id)).map(propio));
+    g.items.forEach(it => { IDX[it.id] = it; });
+  });
+}
+armar();
+
+/* ---------- estado ---------- */
+const CLAVE = 'matriz-saciante-seleccion';
+let seleccion = new Set(['atun', 'tortitas', 'crudos', 'hojas', 'aguacate']);
+let esEjemplo = true;
+try {
+  const g = JSON.parse(localStorage.getItem(CLAVE));
+  if (Array.isArray(g)) { seleccion = new Set(g.filter(id => IDX[id])); esEjemplo = false; }
+} catch (e) {}
+const guardar = () => { try { localStorage.setItem(CLAVE, JSON.stringify([...seleccion])); } catch (e) {} };
+
+/* ---------- matriz ---------- */
+const $grupos = document.getElementById('grupos'), $conteo = document.getElementById('conteo');
+let editando = false, enEdicion = null;
+function pintarMatriz() {
+  $grupos.innerHTML = '';
+  $grupos.classList.toggle('editando', editando);
+  GRUPOS.forEach(g => {
+    const sec = document.createElement('div');
+    sec.className = 'grupo';
+    sec.style.setProperty('--c', g.color);
+    sec.innerHTML = `<div class="grupo-title"><h3>${g.titulo}</h3><span class="barra"></span></div>
+      <div class="chips">${g.items.map(it => `<button type="button" class="chip" id="chip-${it.id}" data-id="${it.id}" aria-pressed="${seleccion.has(it.id)}"><span class="emoji" aria-hidden="true">${it.e}</span><span class="chip-name">${it.n}</span><span class="chip-por">${it.por.replace(/ de$/, '')} ·${it.kcal} kcal</span></button>`).join('')}${editando ? `<button type="button" class="chip nuevo" data-nuevo="${g.cat}" aria-label="Agregar a ${g.titulo}">＋<span class="chip-name">Agregar</span></button>` : ''}</div>`;
+    $grupos.appendChild(sec);
+  });
+}
+pintarMatriz();
+function contar() {
+  $conteo.innerHTML = GRUPOS.map(g => `<span style="--c:${g.color}"><i class="dot"></i>${g.corto} ${g.items.filter(i => seleccion.has(i.id)).length}</span>`).join('');
+}
+contar();
+$grupos.addEventListener('click', e => {
+  const b = e.target.closest('.chip'); if (!b) return;
+  if (editando) return abrirEditor(b.dataset.id, b.dataset.nuevo);
+  const id = b.dataset.id;
+  seleccion.has(id) ? seleccion.delete(id) : seleccion.add(id);
+  b.setAttribute('aria-pressed', seleccion.has(id));
+  document.getElementById('aviso').hidden = true;
+  contar(); guardar();
+});
+document.getElementById('limpiar').addEventListener('click', () => {
+  seleccion.clear(); guardar(); contar();
+  document.querySelectorAll('.chip').forEach(c => c.setAttribute('aria-pressed', 'false'));
+});
+
+/* ---------- editor de alimentos ---------- */
+const $editor = document.getElementById('editor'), $ed = k => document.getElementById('ed-' + k);
+document.getElementById('editar-matriz').addEventListener('click', e => {
+  editando = !editando;
+  e.currentTarget.textContent = editando ? 'Listo' : 'Editar alimentos';
+  e.currentTarget.setAttribute('aria-pressed', editando);
+  document.getElementById('edita-nota').hidden = !editando;
+  pintarMatriz();
+});
+function abrirEditor(id, catNueva) {
+  const it = id ? IDX[id] : null, cat = it ? it.cat : catNueva;
+  enEdicion = { id: id || null, cat, fijo: !!it && !it.propio };
+  document.getElementById('editor-grupo').textContent = CAT[cat].titulo;
+  document.getElementById('editor-titulo').textContent = it ? 'Editar ' + it.n.toLowerCase() : 'Agregar alimento';
+  $ed('n').value = it ? it.n : ''; $ed('por').value = it ? it.por.replace(/ de$/, '') : ''; $ed('e').value = it ? it.e : '';
+  $ed('kcal').value = it ? it.kcal : ''; $ed('prot').value = it ? it.prot : '';
+  ['carb', 'fibra', 'grasa'].forEach((k, i) => { $ed(k).value = it ? it.m[i] : ''; });
+  ['n', 'por', 'e'].forEach(k => { $ed(k).disabled = enEdicion.fijo; });
+  document.getElementById('editor-nota').textContent = enEdicion.fijo
+    ? 'El nombre y la porción de este alimento van ligados a los pasos de las recetas. Puedes ajustar sus valores o quitarlo.'
+    : 'Si no sabes las calorías o los gramos, déjalos vacíos: se calculan solos para la porción que escribas.';
+  document.getElementById('editor-quitar').hidden = !it;
+  $editor.showModal();
+}
+function aplicarAjustes() {
+  guardarAjustes(); armar();
+  seleccion = new Set([...seleccion].filter(id => IDX[id])); guardar();
+  pintarMatriz(); contar(); pintarDia();
+  $editor.close();
+}
+/* valores típicos por grupo, por si no se pueden calcular con Gemini */
+const TIPICO = {
+  prote: { kcal: 120, prot: 18, m: [1, 0, 4] }, carb: { kcal: 100, prot: 3, m: [20, 2, 1] }, fibra: { kcal: 30, prot: 2, m: [6, 2.5, 0] },
+  grasa: { kcal: 50, prot: 1, m: [1, .5, 5] }, bebida: { kcal: 0, prot: 0, m: [0, 0, 0] }
+};
+async function estimar(nombre, por, cat) {
+  const g = { type: 'NUMBER' };
+  const a = await llamarGemini({
+    contents: [{ parts: [{ text: `Estima los valores nutricionales de esta porción de alimento, preparado como se come normalmente en México: "${por} de ${nombre}" (grupo: ${CAT[cat].titulo}). Devuelve las calorías y los gramos de proteína, carbohidratos, fibra y grasa de esa porción completa.` }] }],
+    generationConfig: { responseMimeType: 'application/json', responseSchema: { type: 'OBJECT',
+      properties: { kcal: g, proteina: g, carbohidratos: g, fibra: g, grasa: g }, required: ['kcal', 'proteina', 'carbohidratos', 'fibra', 'grasa'] } }
+  });
+  return { kcal: a.kcal, prot: a.proteina, m: [a.carbohidratos, a.fibra, a.grasa] };
+}
+document.getElementById('editor-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const sinKcal = $ed('kcal').value.trim() === '';
+  if (enEdicion.fijo && sinKcal) { delete ajustes.cambios[enEdicion.id]; return aplicarAjustes(); }
+  let estado = '';
+  if (sinKcal) {
+    const $g = document.getElementById('editor-guardar'), nombre = limpio($ed('n').value, 30);
+    $g.disabled = true; $g.textContent = 'Calculando…';
+    let v;
+    try {
+      v = await estimar(nombre, limpio($ed('por').value, 20), enEdicion.cat);
+      estado = `Calculé los valores de «${nombre}» con Gemini. Son aproximados: tócalo si quieres corregirlos.`;
+    } catch (err) {
+      v = TIPICO[enEdicion.cat];
+      estado = `No pude calcular «${nombre}» con Gemini, así que le puse valores típicos de su grupo. Tócalo si quieres corregirlos.`;
+    }
+    $g.disabled = false; $g.textContent = 'Guardar';
+    $ed('kcal').value = Math.round(v.kcal);
+    if ($ed('prot').value.trim() === '') $ed('prot').value = v.prot;
+    ['carb', 'fibra', 'grasa'].forEach((k, i) => { if ($ed(k).value.trim() === '') $ed(k).value = v.m[i]; });
+  }
+  const $estado = document.getElementById('edita-estado');
+  $estado.textContent = estado; $estado.hidden = !estado;
+  const d = { kcal: Math.round(medida($ed('kcal').value, 900)), prot: medida($ed('prot').value, 99), m: ['carb', 'fibra', 'grasa'].map(k => medida($ed(k).value, 99)) };
+  if (enEdicion.fijo) ajustes.cambios[enEdicion.id] = d;
+  else {
+    const p = Object.assign({ id: enEdicion.id || 'x' + Date.now(), cat: enEdicion.cat, e: limpio($ed('e').value, 4), n: limpio($ed('n').value, 30), por: limpio($ed('por').value, 20) }, d);
+    const i = ajustes.propios.findIndex(x => x.id === p.id);
+    if (i < 0) ajustes.propios.push(p); else ajustes.propios[i] = p;
+  }
+  aplicarAjustes();
+});
+document.getElementById('editor-quitar').addEventListener('click', () => {
+  if (enEdicion.fijo) ajustes.ocultos.push(enEdicion.id);
+  else ajustes.propios = ajustes.propios.filter(x => x.id !== enEdicion.id);
+  aplicarAjustes();
+});
+document.getElementById('editor-cerrar').addEventListener('click', () => $editor.close());
+$editor.addEventListener('click', e => { if (e.target === $editor) $editor.close(); });
+document.getElementById('restaurar').addEventListener('click', () => {
+  if (!confirm('¿Volver a la matriz original? Se borran los alimentos que agregaste y los valores que cambiaste.')) return;
+  ajustes = { ocultos: [], cambios: {}, propios: [] };
+  aplicarAjustes();
+});
+
+/* ---------- generador: cada paso es [ícono, título, detalle] ---------- */
+let ultimoSazon = null, ultimoCierre = null, recetaActual = null;
+
+function componer(sel) {
+  const de = cat => sel.filter(id => IDX[id].cat === cat);
+  const P = mezclar(de('prote')).slice(0, 2);
+  const C = alAzar(de('carb')) || null;
+  const F = de('fibra'), G = de('grasa');
+  const gel = F.includes('gelatina'), crudos = F.includes('crudos'), hojas = F.includes('hojas');
+  const hot = F.filter(x => IDX[x].corte);
+  const usados = new Set([...P, ...hot]);
+  if (C) usados.add(C);
+  if (gel) usados.add('gelatina');
+  const pasos = [];
+  const tiene = id => P.includes(id);
+  const frio = ids => ids.map(id => IDX[id].frio);
+  const BOTANA = ['🥕', 'Botanea mientras cocinas', '1½ tazas de pepino, jícama o apio con limón y chile.'];
+  const POSTRE = ['🍮', 'Cierra con gelatina light', '1 taza. Lo dulce marca el final.'];
+
+  let modo = C || 'plato';
+  if (C === 'avena') {
+    const salados = P.filter(p => p !== 'claras' && p !== 'requeson');
+    modo = salados.length ? 'tortitasAvena' : (P.length && !hot.length ? 'dulce' : 'avenaSalada');
+  }
+
+  if (modo === 'dulce') {
+    const tops = ['chia', 'cacahuates', 'nuez'].filter(x => G.includes(x));
+    tops.forEach(x => usados.add(x));
+    let nombre;
+    if (crudos) { usados.add('crudos'); pasos.push(BOTANA); }
+    if (tiene('claras')) {
+      const grasa = G.includes('spray') ? (usados.add('spray'), '2 disparos de spray') : 'sin grasa';
+      nombre = 'Hot cakes esponjosos de avena y canela';
+      pasos.push(['🥣', 'Bate todo', `¼ taza de avena, 4 claras${tiene('requeson') ? ', ½ taza de requesón' : ''}, canela, vainilla y endulzante. Reposa 2 min.`]);
+      pasos.push(['🍳', 'Vierte 3 círculos chicos', `Sartén a fuego medio, ${grasa}.`]);
+      pasos.push(['🥞', 'Voltea al ver burbujas', '2 minutos por lado.']);
+    } else {
+      nombre = 'Avena cremosa tipo arroz con leche';
+      pasos.push(['🥣', 'Cocina la avena', '¼ taza + ¾ taza de agua y canela. 3 a 4 min moviendo.']);
+      pasos.push(['🧀', 'Apaga y mezcla el requesón', '½ taza, con vainilla y endulzante.']);
+    }
+    if (tops.length) pasos.push(['✨', 'Decora', cap(lista(tops.map(x => IDX[x].por + ' de ' + IDX[x].corto))) + '.']);
+    if (gel) pasos.push(POSTRE);
+    return { nombre, min: 10, pasos, usados };
+  }
+
+  /* un carbohidrato propio no tiene modo: se arma uno genérico de sartén */
+  const m = MODOS[modo] || { nombres: [`Plato de ${IDX[modo].corto}`, `Sartén de ${IDX[modo].corto}`], con: 'con', saz: Object.keys(SAZONES), min: 12 };
+  const olla = ['lentejas', 'frijoles'].includes(modo);
+  const ollaTxt = modo === 'frijoles' ? ['los frijoles', 'frijoles cocidos'] : ['las lentejas', 'lentejas cocidas'];
+  const sazId = alAzar(m.saz.filter(s => s !== ultimoSazon)) || m.saz[0];
+  ultimoSazon = sazId;
+  const saz = SAZONES[sazId];
+  const sarten = modo !== 'tortitas' && modo !== 'pan' && !olla && modo !== 'plato' || hot.length > 0 || tiene('claras');
+
+  let cocinar = '1 cucharada de agua', olivaCocida = false;
+  if (sarten && G.includes('spray')) { cocinar = '2 disparos de spray'; usados.add('spray'); }
+  else if (sarten && G.includes('oliva')) { cocinar = '1 cdita de aceite de oliva'; usados.add('oliva'); olivaCocida = true; }
+  const toques = [];
+  if (G.includes('oliva') && !olivaCocida) { toques.push('1 cdita de aceite de oliva en crudo'); usados.add('oliva'); }
+  if (G.includes('aguacate')) { toques.push('2 rebanadas de aguacate'); usados.add('aguacate'); }
+  if (G.includes('aceitunas')) { toques.push('5 aceitunas picadas'); usados.add('aceitunas'); }
+  if (G.includes('cacahuates')) { toques.push('10 cacahuates troceados'); usados.add('cacahuates'); }
+  if (G.includes('chia')) { toques.push('1 cdita de chía'); usados.add('chia'); }
+  G.filter(x => IDX[x].toque).forEach(x => { toques.push(IDX[x].toque); usados.add(x); });
+
+  const cortes = cap(lista(hot.map(x => IDX[x].corte)));
+  const SALTEA = ['🥘', 'Saltea la verdura', `${cortes}. 4 min con ${cocinar} y sal${hot.includes('nopales') ? ', hasta que el nopal seque' : ''}.`];
+  let crudosMezclados = false;
+
+  if (crudos && (sarten || P.length || olla)) { usados.add('crudos'); pasos.push(BOTANA); }
+
+  if (modo === 'tortitasAvena') {
+    const liga = tiene('claras') ? '4 claras' : '2 cucharadas de agua';
+    pasos.push(['🥣', 'Mezcla y aplasta', `${cap(lista(frio(P.filter(p => p !== 'claras'))))}, ¼ taza de avena, ${liga} y ${saz.txt}. Reposa 2 min.`]);
+    pasos.push(['🍳', 'Dora 3 o 4 tortitas', `3 min por lado, con ${cocinar}.`]);
+    if (hot.length) pasos.push(['🥘', 'Saltea la verdura al lado', `${cortes}. 4 min con sal.`]);
+    if (hojas) { usados.add('hojas'); pasos.push(['🥬', 'Sirve sobre hojas', '2 tazas de espinacas o lechuga con limón.']); }
+  } else if (modo === 'avenaSalada') {
+    if (hot.length) pasos.push(SALTEA);
+    pasos.push(['🥣', 'Cocina la avena', `¼ taza + ¾ taza de agua, sal y ${saz.txt}. 4 min moviendo.`]);
+    if (tiene('claras')) pasos.push(['🥚', 'Agrega 4 claras', 'Mueve rápido 1 minuto.']);
+    if (tiene('requeson')) pasos.push(['🧀', 'Apaga y mezcla el requesón', '½ taza, para que quede cremosa.']);
+    if (hojas) { usados.add('hojas'); pasos.push(['🥬', 'Espinacas al final', '2 tazas, 30 segundos.']); }
+  } else {
+    if (modo === 'shirataki') pasos.push(['🍜', 'Enjuaga y seca los fideos', '1 min bajo el chorro, 2 min en sartén seco. Aparta.']);
+    if (sarten) {
+      pasos.push(hot.length ? SALTEA : ['🔥', 'Calienta el sartén', `Fuego medio con ${cocinar}.`]);
+      const pc = P.filter(p => p !== 'requeson');
+      if (pc.length) pasos.push(['🍳', 'Agrega la proteína', `${cap(lista(frio(pc)))}${tiene('claras') ? ', revolviendo hasta que cuajen' : ''}. Sazona con ${saz.txt}. 2 min.`]);
+      else pasos.push(['🌶️', 'Sazona', cap(saz.txt) + '.']);
+      if (modo === 'coliflor') pasos.push(['🥦', 'Suma el arroz de coliflor', '1½ tazas a fuego alto, 3 a 4 min sin tapar.']);
+      if (modo === 'shirataki') pasos.push(['🍜', 'Regresa los fideos', '1 minuto, para que agarren sabor.']);
+      if (olla) pasos.push([IDX[modo].e, 'Agrega ' + ollaTxt[0], `½ taza de ${ollaTxt[1]}. 2 minutos.`]);
+      if (IDX[modo] && IDX[modo].suma) pasos.push(IDX[modo].suma);
+      if (tiene('requeson')) pasos.push(['🧀', 'Apaga y mezcla el requesón', '½ taza. Cremoso sin crema.']);
+    } else {
+      const mezcla = frio(P);
+      if (olla) mezcla.push('½ taza de ' + ollaTxt[1]);
+      if (!mezcla.length && crudos) { mezcla.push('1½ tazas de pepino o jícama en cubitos'); usados.add('crudos'); crudosMezclados = true; }
+      if (mezcla.length) pasos.push(['🥣', 'Mezcla en un tazón', `${cap(lista(mezcla))} con ${saz.txt}.`]);
+      else pasos.push(['🌶️', 'Prepara tu sazón', cap(saz.txt) + '.']);
+    }
+    if (hojas) {
+      usados.add('hojas');
+      if (modo === 'tortillas' || modo === 'tortitas' || modo === 'pan') { /* van al armar */ }
+      else if (sarten) pasos.push(['🥬', 'Espinacas al final', '2 tazas, 30 segundos. La lechuga va de cama.']);
+      else pasos.push(['🥬', 'Sirve sobre hojas', '2 tazas de espinacas o lechuga.']);
+    }
+    if (modo === 'tortillas') pasos.push(['🌮', 'Calienta 2 tortillas y rellena', hojas ? 'Comal hasta dorar. Primero hojas, luego relleno.' : 'Comal hasta que salgan manchitas doradas.']);
+    if (modo === 'pan') pasos.push(['🍞', 'Tuesta 2 rebanadas y arma', `Comal o tostador, sin mantequilla. ${hojas ? 'Hojas encima y luego la mezcla' : 'Mezcla encima'}.`]);
+    if (modo === 'tortitas') pasos.push(['🍘', 'Arma al momento', `Tortita${hojas ? ', hojas' : ''} y mezcla encima, para que cruja.`]);
+  }
+  if (toques.length) pasos.push([G.includes('aguacate') ? '🥑' : '✨', 'Termina con el toque medido', cap(lista(toques)) + '.']);
+  if (gel) pasos.push(POSTRE);
+
+  const base = P.length ? lista(P.map(p => IDX[p].corto))
+    : hot.length ? lista(hot.slice(0, 2).map(x => IDX[x].corto))
+    : crudosMezclados ? 'pepino y jícama' : hojas ? 'espinacas' : (olla ? 'limón' : 'la casa');
+  let cola = `${base} ${saz.suf}`, especial = true;
+  if (tiene('pollo') && sazId === 'chipotle') cola = 'tinga ligera de pollo' + (P.length > 1 ? ' con ' + IDX[P.find(p => p !== 'pollo')].corto : '');
+  else if (!sarten && sazId === 'limon' && (tiene('atun') || tiene('surimi') || tiene('camaron'))) cola = 'ceviche de ' + lista(P.map(p => IDX[p].corto));
+  else if (tiene('claras') && sazId === 'mex' && P.length === 1) cola = 'claras a la mexicana';
+  else especial = false;
+  let nombre = modo === 'plato' && especial ? cap(cola) : `${alAzar(!sarten && m.frios || m.nombres)} ${m.con} ${cola}`;
+  if (P.length && hot.length) nombre += ` con ${IDX[hot[0]].corto}`;
+  const min = m.min + (hot.includes('nopales') ? 2 : 0) + (sarten && (modo === 'tortitas' || modo === 'pan' || modo === 'plato' || olla) ? 3 : 0);
+  return { nombre, min: Math.min(min, 15), pasos, usados, sazon: saz.txt };
+}
+
+/* ---------- diagramas ---------- */
+function platoSVG(partes, totalV) {
+  const R = 50, L = 2 * Math.PI * R;
+  let acc = 0;
+  const arcos = partes.filter(p => p.v > 0).map(p => {
+    const len = p.v / totalV * L;
+    const c = `<circle cx="64" cy="64" r="${R}" fill="none" stroke="${p.color}" stroke-width="20" stroke-dasharray="${len.toFixed(2)} ${(L - len).toFixed(2)}" stroke-dashoffset="${(-acc).toFixed(2)}" transform="rotate(-90 64 64)"></circle>`;
+    acc += len; return c;
+  }).join('');
+  return `<svg class="plato" viewBox="0 0 128 128" role="img" aria-label="Reparto del plato por volumen">
+    <circle cx="64" cy="64" r="62" fill="var(--surface)"></circle>${arcos}
+    <text x="64" y="66" text-anchor="middle" font-size="26" font-weight="800">${tazas(totalV)}</text>
+    <text x="64" y="82" text-anchor="middle" font-size="10" font-weight="600">tazas</text></svg>`;
+}
+
+const $res = document.getElementById('resultado');
+function generar(desdeBoton) {
+  const sel = [...seleccion];
+  const $aviso = document.getElementById('aviso');
+  if (!sel.length) { $aviso.textContent = 'Marca al menos un alimento y te armo algo rico con eso.'; $aviso.hidden = false; return; }
+  $aviso.hidden = true;
+  const r = componer(sel);
+  const beb = alAzar(sel.filter(id => IDX[id].cat === 'bebida'));
+  if (beb) { r.usados.add(beb); r.pasos.push([IDX[beb].e, 'Acompaña con ' + IDX[beb].corto, IDX[beb].txt]); }
+  const orden = ['prote', 'carb', 'fibra', 'grasa', 'bebida'];
+  const u = [...r.usados].sort((a, b) => orden.indexOf(IDX[a].cat) - orden.indexOf(IDX[b].cat));
+  const partes = orden.slice(0, 4).map(cat => {
+    const its = u.filter(id => IDX[id].cat === cat);
+    return { cat, color: CAT[cat].color, nombre: CAT[cat].corto, its, v: its.reduce((s, id) => s + IDX[id].v, 0), k: its.reduce((s, id) => s + IDX[id].kcal, 0) };
+  }).filter(p => p.its.length);
+  const kcal = Math.round(partes.reduce((s, p) => s + p.k, 0) / 10) * 10 || 10;
+  const totalV = partes.reduce((s, p) => s + p.v, 0) || .5;
+  const prot = u.reduce((s, id) => s + IDX[id].prot, 0);
+  const mac = i => Math.round(u.reduce((s, id) => s + IDX[id].m[i], 0));
+  recetaActual = { n: r.nombre, kcal, prot, carb: mac(0), fibra: mac(1), grasa: mac(2) };
+  const sobrantes = sel.filter(id => !r.usados.has(id));
+  const sinProte = !partes.some(p => p.cat === 'prote');
+  const cierre = alAzar(CIERRES.filter(c => c !== ultimoCierre)); ultimoCierre = cierre;
+  const antojo = alAzar(ANTOJOS);
+  const fib = partes.find(p => p.cat === 'fibra');
+  const clave = fib && fib.v / totalV >= .3
+    ? `La verdura llena el ${Math.round(fib.v / totalV * 100)} % del plato con solo ${fib.k} kcal.`
+    : `${tazas(totalV)} tazas de comida por unas ${kcal} kcal.`;
+  const veces = (antojo.k / kcal).toFixed(1).replace('.0', '').replace('.', ',');
+
+  $res.innerHTML = `<article class="receta">
+    <div>
+      <p class="eyebrow">${esEjemplo && !desdeBoton ? 'Ejemplo · cambia la matriz y genera la tuya' : 'Tu receta de hoy, Andrea'}</p>
+      <h2>${r.nombre}</h2>
+    </div>
+    <div class="datos">
+      <div class="dato tiempo"><b>${r.min}</b><span>minutos</span></div>
+      <div class="dato"><b>≈${kcal}</b><span>kcal</span></div>
+      <div class="dato"><b>≈${prot} g</b><span>proteína</span></div>
+    </div>
+    <div class="ings">
+      ${u.map(id => `<span class="ing" style="--c:${CAT[IDX[id].cat].color}"><span class="emoji" aria-hidden="true">${IDX[id].e}</span>${IDX[id].por} ${IDX[id].corto}</span>`).join('')}
+      <span class="ing sazon"><span class="emoji" aria-hidden="true">🌶️</span>${r.sazon ? cap(r.sazon) : 'Canela, vainilla y endulzante'}</span>
+    </div>
+
+    <div class="graficas">
+      <div class="panel">
+        <h3>Tu plato por espacio</h3>
+        <div class="plato-fila">
+          ${platoSVG(partes, totalV)}
+          <div class="leyenda">${partes.map(p => `<div style="--c:${p.color}"><i class="dot"></i>${p.nombre}<b>${Math.round(p.v / totalV * 100)} %</b><small>${p.k} kcal</small></div>`).join('')}</div>
+        </div>
+        <p class="clave">${clave}</p>
+      </div>
+      <div class="panel">
+        <h3>Contra el antojo grasoso</h3>
+        <div class="vs">
+          <div class="vs-fila"><div class="vs-rot"><span>Tu receta</span><b>≈${kcal} kcal</b></div><div class="vs-pista"><div class="vs-barra" style="--w:${Math.max(4, kcal / antojo.k * 100).toFixed(1)}%;--f:var(--nopal)"></div></div></div>
+          <div class="vs-fila"><div class="vs-rot"><span>${antojo.n}</span><b>≈${antojo.k} kcal</b></div><div class="vs-pista"><div class="vs-barra" style="--w:100%;--f:var(--antojo)"></div></div></div>
+        </div>
+        <p class="clave">Podrías comer este plato ${veces} veces por las mismas calorías.</p>
+      </div>
+    </div>
+
+    <div>
+      <h3 style="margin-bottom:12px">Paso a paso</h3>
+      <ol class="pasos">${r.pasos.map((p, i) => `<li class="paso"><span class="paso-ico emoji" aria-hidden="true">${p[0]}<i>${i + 1}</i></span><div class="paso-txt"><b>${p[1]}</b><span>${p[2]}</span></div></li>`).join('')}</ol>
+    </div>
+
+    <div class="porque">
+      <h3>Por qué te llena</h3>
+      <div class="razones">${partes.map(p => { const it = IDX[alAzar(p.its.filter(id => id !== 'spray').length ? p.its.filter(id => id !== 'spray') : p.its)]; return `<div class="razon" style="--c:${p.color}"><span class="emoji" aria-hidden="true">${it.e}</span><b>${it.r[0]}</b><span>${it.r[1]}</span></div>`; }).join('')}</div>
+      <p class="cierre">${cierre}</p>
+    </div>
+    ${sinProte ? '<p class="nota"><strong>Consejo:</strong> agrega una proteína y la saciedad te dura varias horas más.</p>' : ''}
+    ${sobrantes.length ? `<p class="nota">Para otra comida: ${lista(sobrantes.map(id => IDX[id].n.toLowerCase()))}.</p>` : ''}
+    <div class="receta-acciones">
+      <button class="otra lleno" type="button" id="sumar-receta">Sumar a mi día</button>
+      <button class="otra" type="button" id="otra">Otra versión con lo mismo</button>
+    </div>
+  </article>`;
+  document.getElementById('otra').addEventListener('click', () => generar(true));
+  document.getElementById('sumar-receta').addEventListener('click', e => {
+    sumarAlDia(recetaActual);
+    e.currentTarget.disabled = true; e.currentTarget.textContent = 'Sumada a tu día ✓';
+  });
+  if (desdeBoton) $res.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+}
+document.getElementById('generar').addEventListener('click', () => generar(true));
+generar(false);
+
+/* ---------- mi día: metas y foto con Gemini ---------- */
+const METAS = [
+  { k: 'kcal', n: 'Calorías', u: 'kcal', min: 0, max: 1500, rango: '1500', tope: true, color: 'var(--nopal)' },
+  { k: 'prot', n: 'Proteína', u: 'g', min: 80, max: 90, rango: '80–90', color: 'var(--jamaica)' },
+  { k: 'fibra', n: 'Fibra', u: 'g', min: 25, max: 30, rango: '25–30', color: 'var(--nopal)' },
+  { k: 'grasa', n: 'Grasas saludables', u: 'g', min: 35, max: 40, rango: '35–40', tope: true, color: 'var(--aceite)' },
+  { k: 'carb', n: 'Carbohidratos complejos', u: 'g', min: 110, max: 130, rango: '110–130', tope: true, color: 'var(--maiz)' }
+];
+const MODELO_GEMINI = 'gemini-flash-latest';
+const CLAVE_DIA = 'matriz-saciante-dia', CLAVE_API = 'matriz-saciante-gemini';
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const hoy = () => { const d = new Date(); return [d.getFullYear(), d.getMonth() + 1, d.getDate()].map(n => String(n).padStart(2, '0')).join('-'); };
+let dia = { fecha: hoy(), items: [] };
+try {
+  const g = JSON.parse(localStorage.getItem(CLAVE_DIA));
+  if (g && g.fecha === hoy() && Array.isArray(g.items)) dia = g;
+} catch (e) {}
+const guardarDia = () => { try { localStorage.setItem(CLAVE_DIA, JSON.stringify(dia)); } catch (e) {} };
+const total = k => Math.round(dia.items.reduce((s, it) => s + (+it[k] || 0), 0));
+
+const $metas = document.getElementById('metas'), $registro = document.getElementById('registro'),
+      $analisis = document.getElementById('analisis'), $fotoEstado = document.getElementById('foto-estado'),
+      $config = document.getElementById('config'), $key = document.getElementById('gemini-key'),
+      $sug = document.getElementById('sugerencias');
+const hora = new Date().getHours();
+document.getElementById('saludo').textContent = (hora < 5 ? 'Buen turno' : hora < 12 ? 'Buenos días' : hora < 19 ? 'Buenas tardes' : 'Buenas noches') + ', Andrea';
+function estadoMeta(m, v) {
+  if (m.k === 'kcal') return v <= m.max ? `Te quedan ${m.max - v} kcal` : `Te pasaste ${v - m.max} kcal`;
+  if (v < m.min) return `Faltan ${m.min - v} g`;
+  if (v <= m.max) return 'En meta ✓';
+  return m.tope ? `${v - m.max} g de más` : 'Meta cumplida ✓';
+}
+function pintarDia() {
+  $metas.innerHTML = METAS.map(m => {
+    const v = total(m.k);
+    return `<div class="meta${m.tope && v > m.max ? ' pasado' : ''}" style="--c:${m.color}">
+      <div class="meta-rot"><span>${m.n}</span><b>${v} de ${m.rango} ${m.u}</b></div>
+      <div class="meta-pista"><div class="meta-barra" style="width:${Math.min(100, v / m.max * 100).toFixed(1)}%"></div>${m.min ? `<i style="left:${(m.min / m.max * 100).toFixed(1)}%"></i>` : ''}</div>
+      <small>${estadoMeta(m, v)}</small></div>`;
+  }).join('');
+  $registro.innerHTML = dia.items.map((it, i) => `<li><span>${esc(it.hora)} · ${esc(it.n)}</span><b>${Math.round(it.kcal)} kcal</b><button type="button" data-i="${i}" aria-label="Quitar ${esc(it.n)}">×</button></li>`).join('');
+  pintarSugerencias();
+}
+
+/* qué conviene comer con lo que falta del día, tomado de su propia matriz */
+const NUTRI = [
+  { k: 'prot', n: 'proteína', min: 80, umbral: 5, cat: 'prote', piso: 7, de: it => it.prot },
+  { k: 'fibra', n: 'fibra', min: 25, umbral: 3, cat: 'fibra', piso: 2, de: it => it.m[1] },
+  { k: 'grasa', n: 'grasas saludables', min: 35, umbral: 4, cat: 'grasa', piso: 2, de: it => it.m[2] },
+  { k: 'carb', n: 'carbohidratos complejos', min: 110, umbral: 12, cat: 'carb', piso: 12, de: it => it.m[0], orden: it => it.m[0] + 3 * it.m[1] }
+];
+let sugeridos = [];
+function pintarSugerencias() {
+  const queda = 1500 - total('kcal'), margenGrasa = 40 - total('grasa'), margenCarb = 130 - total('carb');
+  const cabe = it => it.kcal <= queda && it.m[2] <= Math.max(margenGrasa, 1) && it.m[0] <= Math.max(margenCarb, 3);
+  const faltas = NUTRI.map(nu => ({ nu, falta: nu.min - total(nu.k) })).filter(f => f.falta > f.nu.umbral)
+    .sort((a, b) => b.falta / b.nu.min - a.falta / a.nu.min);
+  sugeridos = [];
+  const filas = queda <= 0 ? '' : faltas.map(f => {
+    const peso = f.nu.orden || f.nu.de;
+    const ops = Object.values(IDX).filter(it => it.cat === f.nu.cat && f.nu.de(it) >= f.nu.piso && cabe(it))
+      .sort((a, b) => peso(b) / Math.max(b.kcal, 20) - peso(a) / Math.max(a.kcal, 20)).slice(0, 3);
+    if (!ops.length) return '';
+    sugeridos.push(ops[0].id);
+    return `<div class="sug"><b>Te faltan ${f.falta} g de ${f.nu.n}</b><div class="ings">${ops.map(it => `<span class="ing" style="--c:${CAT[it.cat].color}"><span class="emoji" aria-hidden="true">${it.e}</span>${it.n} · ${it.por.replace(/ de$/, '')} · ${f.nu.de(it)} g</span>`).join('')}</div></div>`;
+  }).join('');
+  const kcalFaltas = faltas.reduce((s, f) => s + f.falta * (f.nu.k === 'grasa' ? 9 : f.nu.k === 'fibra' ? 0 : 4), 0);
+  let titular;
+  if (queda <= 0) titular = 'Ya llegaste a tus 1500 kcal de hoy. Si aparece hambre de verdad, ve por verdura libre, gelatina light o una bebida sin azúcar.';
+  else if (!faltas.length) titular = `Tus macros van en meta. Te quedan ${queda} kcal: mantenlas ligeras, con verdura y proteína magra.`;
+  else if (!dia.items.length) titular = 'Aún no registras nada hoy. Empieza por proteína y fibra, que son las que más cuesta completar.';
+  else titular = `Te quedan ${queda} kcal. Esto es lo que más te conviene ahora:`;
+  const avisos = [];
+  if (queda > 0 && kcalFaltas > queda + 100) avisos.push('No todo va a caber en las calorías que quedan: dale prioridad a la proteína y a la fibra.');
+  if (margenGrasa < 0) avisos.push('Ya pasaste tus grasas de hoy: cocina con spray o agua y deja aguacate, semillas y quesos para mañana.');
+  if (margenCarb < 0) avisos.push('Carbohidratos completos por hoy: usa de base coliflor, fideos shirataki o más verdura.');
+  $sug.innerHTML = `<h3>Andrea, esto te conviene ahora</h3><p>${titular}</p>${filas}${avisos.map(a => `<p class="nota">${a}</p>`).join('')}
+    ${sugeridos.length ? '<button class="otra lleno" type="button" id="usar-sugeridos">Armar una receta con esto</button>' : ''}`;
+}
+$sug.addEventListener('click', e => {
+  if (!e.target.closest('#usar-sugeridos')) return;
+  seleccion = new Set(sugeridos.filter(id => IDX[id])); esEjemplo = false;
+  guardar(); pintarMatriz(); contar(); generar(true);
+});
+function sumarAlDia(c) {
+  if (dia.fecha !== hoy()) dia = { fecha: hoy(), items: [] };
+  const hora = new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+  dia.items.push({ hora, n: c.n, kcal: c.kcal, prot: c.prot, fibra: c.fibra, grasa: c.grasa, carb: c.carb });
+  guardarDia(); pintarDia();
+}
+$registro.addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  dia.items.splice(+b.dataset.i, 1); guardarDia(); pintarDia();
+});
+document.getElementById('reiniciar-dia').addEventListener('click', () => {
+  if (!dia.items.length || !confirm('¿Borrar todo lo registrado hoy?')) return;
+  dia = { fecha: hoy(), items: [] }; guardarDia(); pintarDia();
+});
+pintarDia();
+
+const leerKey = () => { try { return localStorage.getItem(CLAVE_API) || ''; } catch (e) { return ''; } };
+$key.value = leerKey();
+/* publicada con main.py, la clave vive en el servidor y no hace falta pegarla aquí */
+let servidor = false;
+if (location.protocol.startsWith('http')) {
+  fetch('api/estado').then(r => r.json()).then(d => { servidor = !!d.gemini; if (servidor) $config.hidden = true; }).catch(() => {});
+}
+function avisoFoto(txt, error) {
+  $fotoEstado.textContent = txt; $fotoEstado.className = error ? 'aviso' : 'nota'; $fotoEstado.hidden = !txt;
+}
+document.getElementById('guardar-key').addEventListener('click', () => {
+  try { localStorage.setItem(CLAVE_API, $key.value.trim()); } catch (e) {}
+  avisoFoto($key.value.trim() ? 'Clave guardada. Ya puedes tomar la foto.' : '');
+  if ($key.value.trim()) $config.open = false;
+});
+function pedirFoto(idInput) {
+  if (!servidor && !leerKey()) { $config.open = true; avisoFoto('Primero pega tu clave de Gemini aquí abajo.', true); $key.focus(); return; }
+  document.getElementById(idInput).click();
+}
+document.getElementById('tomar-foto').addEventListener('click', () => pedirFoto('foto-camara'));
+document.getElementById('elegir-foto').addEventListener('click', () => pedirFoto('foto-galeria'));
+
+/* achica la foto a 1024 px y la devuelve en base64 */
+function reducir(file) {
+  return new Promise((ok, mal) => {
+    const img = new Image(), url = URL.createObjectURL(file);
+    img.onload = () => {
+      const k = Math.min(1, 1024 / Math.max(img.width, img.height));
+      const c = document.createElement('canvas');
+      c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url);
+      ok(c.toDataURL('image/jpeg', .82).split(',')[1]);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); mal(new Error('No pude leer esa imagen. Prueba con otra foto.')); };
+    img.src = url;
+  });
+}
+async function analizar(b64) {
+  const num = { type: 'NUMBER' };
+  const prompt = `Eres la nutrióloga de Andrea. Analiza la foto de esta comida (probablemente cocina casera mexicana) y estima, para la porción que se ve, calorías y gramos de proteína, fibra, grasa y carbohidratos. Sé realista con aceite, crema y queso ocultos.
+Plan diario de la persona: máximo 1500 kcal, proteína 80-90 g, fibra 25-30 g, grasas 35-40 g, carbohidratos 110-130 g.
+Hoy lleva registrado: ${total('kcal')} kcal, ${total('prot')} g de proteína, ${total('fibra')} g de fibra, ${total('grasa')} g de grasa y ${total('carb')} g de carbohidratos.
+Responde en español. "nombre" es un nombre corto del platillo. "alimentos" lista lo que ves con su porción aproximada. "consejo" es una sola frase amable y concreta (máximo 25 palabras) sobre cómo encaja este plato en lo que le queda del día o qué ajustar. Si la foto no muestra comida, pon "esComida" en false y los números en 0.`;
+  return llamarGemini({
+    contents: [{ parts: [{ inline_data: { mime_type: 'image/jpeg', data: b64 } }, { text: prompt }] }],
+    generationConfig: {
+      responseMimeType: 'application/json',
+      responseSchema: {
+        type: 'OBJECT',
+        properties: { esComida: { type: 'BOOLEAN' }, nombre: { type: 'STRING' }, alimentos: { type: 'ARRAY', items: { type: 'STRING' } },
+          kcal: num, proteina: num, fibra: num, grasa: num, carbohidratos: num, consejo: { type: 'STRING' } },
+        required: ['esComida', 'nombre', 'alimentos', 'kcal', 'proteina', 'fibra', 'grasa', 'carbohidratos', 'consejo']
+      }
+    }
+  });
+}
+/* manda la consulta por el servidor si tiene la clave; si no, directo a Google con la clave de este dispositivo */
+async function llamarGemini(cuerpo) {
+  const key = leerKey();
+  if (!servidor && !key) throw new Error('Falta la clave de Gemini.');
+  const res = servidor
+    ? await fetch('api/gemini', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(cuerpo) })
+    : await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODELO_GEMINI}:generateContent`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key }, body: JSON.stringify(cuerpo) });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    if (res.status === 400 || res.status === 403) throw new Error('Gemini rechazó la solicitud. Revisa que tu clave sea correcta. (' + ((data.error && data.error.message) || res.status) + ')');
+    if (res.status === 429) throw new Error('Llegaste al límite de uso de Gemini por ahora. Intenta en un minuto.');
+    throw new Error('Gemini no respondió bien: ' + ((data.error && data.error.message) || res.status));
+  }
+  const partes = (((data.candidates || [])[0] || {}).content || {}).parts || [];
+  const txt = partes.filter(p => !p.thought).map(p => p.text || '').join('');
+  if (!txt) throw new Error('Gemini no devolvió una respuesta. Intenta de nuevo.');
+  return JSON.parse(txt);
+}
+let pendiente = null;
+async function alElegirFoto(e) {
+  const f = e.target.files[0]; e.target.value = '';
+  if (!f) return;
+  const botones = document.querySelectorAll('.foto-btn');
+  botones.forEach(b => b.disabled = true);
+  $analisis.innerHTML = ''; pendiente = null;
+  avisoFoto('Analizando tu plato…');
+  try {
+    const b64 = await reducir(f);
+    const a = await analizar(b64);
+    if (!a.esComida) { avisoFoto('No vi comida en esa foto. Toma otra con el plato completo y buena luz.', true); return; }
+    avisoFoto('');
+    const r = n => Math.max(0, Math.round(+n || 0));
+    pendiente = { n: a.nombre || 'Comida', kcal: r(a.kcal), prot: r(a.proteina), fibra: r(a.fibra), grasa: r(a.grasa), carb: r(a.carbohidratos) };
+    const queda = 1500 - total('kcal') - pendiente.kcal;
+    $analisis.innerHTML = `<div class="analisis">
+      <div class="analisis-top"><img src="data:image/jpeg;base64,${b64}" alt="Foto de tu comida">
+        <div><p class="eyebrow">Estimación de Gemini</p><h3>${esc(pendiente.n)}</h3><p class="nota">${esc((a.alimentos || []).join(' · '))}</p></div></div>
+      <div class="macros">
+        <div class="macro"><b>${pendiente.kcal}</b><span>kcal</span></div>
+        <div class="macro"><b>${pendiente.prot} g</b><span>proteína</span></div>
+        <div class="macro"><b>${pendiente.fibra} g</b><span>fibra</span></div>
+        <div class="macro"><b>${pendiente.grasa} g</b><span>grasa</span></div>
+        <div class="macro"><b>${pendiente.carb} g</b><span>carbos</span></div>
+      </div>
+      <p class="veredicto${queda < 0 ? ' mal' : ''}">${queda < 0 ? `Con este plato pasarías tus 1500 kcal por ${-queda}.` : `Sí cabe: te quedarían ${queda} kcal para hoy.`}</p>
+      <p>${esc(a.consejo || '')}</p>
+      <p class="nota">Es un cálculo aproximado a partir de la foto.</p>
+      <div class="receta-acciones">
+        <button class="otra lleno" type="button" id="sumar-foto">Sumar a mi día</button>
+        <button class="otra" type="button" id="descartar-foto">Descartar</button>
+      </div></div>`;
+  } catch (err) {
+    avisoFoto(err instanceof TypeError ? 'No pude conectar con Gemini. Revisa tu internet.' : err.message, true);
+  } finally {
+    botones.forEach(b => b.disabled = false);
+  }
+}
+document.getElementById('foto-camara').addEventListener('change', alElegirFoto);
+document.getElementById('foto-galeria').addEventListener('change', alElegirFoto);
+$analisis.addEventListener('click', e => {
+  if (e.target.id === 'sumar-foto' && pendiente) sumarAlDia(pendiente);
+  if (e.target.id === 'sumar-foto' || e.target.id === 'descartar-foto') { $analisis.innerHTML = ''; pendiente = null; }
+});
+
+/* ---------- emergencia nocturna ---------- */
+const $sos = document.getElementById('sos'), $est = document.getElementById('estrategia');
+let iEst = Math.floor(Math.random() * ESTRATEGIAS.length);
+function pintarEstrategia() {
+  const e = ESTRATEGIAS[iEst];
+  $est.innerHTML = `<span class="emoji" aria-hidden="true">${e.e}</span><span class="cero">${e.k}</span><h3>${e.t}</h3><p>${e.p}</p>
+    <div class="puntos" aria-hidden="true">${ESTRATEGIAS.map((_, i) => `<i class="${i === iEst ? 'on' : ''}"></i>`).join('')}</div>`;
+}
+document.getElementById('abrir-sos').addEventListener('click', () => { pintarEstrategia(); $sos.showModal(); });
+document.getElementById('cerrar-sos').addEventListener('click', () => $sos.close());
+$sos.addEventListener('click', e => { if (e.target === $sos) $sos.close(); });
+$sos.addEventListener('close', pararRespira);
+document.getElementById('otra-estrategia').addEventListener('click', () => { iEst = (iEst + 1) % ESTRATEGIAS.length; pintarEstrategia(); });
+
+const FASES = [['Inhala por la nariz', 4, 1], ['Sostén el aire', 4, 1], ['Suelta lento por la boca', 6, .6]];
+let reloj = null;
+const $resp = document.getElementById('respira'), $circ = document.getElementById('circulo'),
+      $cuenta = document.getElementById('cuenta'), $fase = document.getElementById('fase'), $btnResp = document.getElementById('btn-respira');
+function pararRespira() {
+  clearInterval(reloj); reloj = null; $resp.hidden = true; $circ.style.transform = 'scale(.6)';
+  $btnResp.textContent = 'Respirar 1 minuto';
+}
+$btnResp.addEventListener('click', () => {
+  if (reloj) return pararRespira();
+  $resp.hidden = false; $btnResp.textContent = 'Detener';
+  let ronda = 0, f = 0, s = 0;
+  const entrar = () => {
+    const [txt, dur, escala] = FASES[f];
+    s = dur; $fase.textContent = txt; $cuenta.textContent = s;
+    $circ.style.transitionDuration = dur + 's'; $circ.style.transform = `scale(${escala})`;
+  };
+  requestAnimationFrame(entrar);
+  reloj = setInterval(() => {
+    s--;
+    if (s > 0) { $cuenta.textContent = s; return; }
+    f++;
+    if (f === FASES.length) { f = 0; ronda++; }
+    if (ronda === 4) {
+      clearInterval(reloj); reloj = null;
+      $fase.textContent = 'Listo. Tu cuerpo ya bajó una velocidad.'; $cuenta.textContent = '✓';
+      $btnResp.textContent = 'Respirar otra vez';
+      return;
+    }
+    entrar();
+  }, 1000);
+});
+</script>
+
+</body></html>

@@ -1,0 +1,2 @@
+# main.py solo usa la biblioteca estándar de Python.
+# Este archivo existe para que Railway reconozca el proyecto como Python.
