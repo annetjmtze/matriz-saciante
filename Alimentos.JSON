@@ -1,0 +1,72 @@
+{
+  "alimentos_bajos_calorias": {
+    "proteinas": [
+      { "nombre": "Claras de huevo", "calorias_por_100g": 50 },
+      { "nombre": "Atún en lata (en agua)", "calorias_por_100g": 78 },
+      { "nombre": "Bacalao fresco", "calorias_por_100g": 71 },
+      { "nombre": "Pechuga de pollo (sin piel)", "calorias_por_100g": 115 },
+      { "nombre": "Pechuga de pavo (natural o asada)", "calorias_por_100g": 120 },
+      { "nombre": "Queso requesón bajo en grasa", "calorias_por_100g": 95 },
+      { "nombre": "Queso cottage light", "calorias_por_100g": 78 },
+      { "nombre": "Tofu firme", "calorias_por_100g": 73 },
+      { "nombre": "Surimi (barritas de cangrejo)", "calorias_por_100g": 90 },
+      { "nombre": "Merluza", "calorias_por_100g": 75 },
+      { "nombre": "Langostino o camarón (cocido)", "calorias_por_100g": 85 },
+      { "nombre": "Yogur griego natural 0% grasa", "calorias_por_100g": 58 },
+      { "nombre": "Lomo de cerdo magro", "calorias_por_100g": 120 },
+      { "nombre": "Proteína de soya texturizada (hidratada)", "calorias_por_100g": 95 },
+      { "nombre": "Pulpo (cocido)", "calorias_por_100g": 82 }
+    ],
+    "grasas": [
+      { "nombre": "Aceite en aerosol (oliva o canola)", "calorias": "0-8 kcal por rociada" },
+      { "nombre": "Caldo o spray de aceite vegetal", "calorias": "15 kcal por cucharadita" },
+      { "nombre": "Aceitunas verdes o negras", "calorias": "15-20 kcal (2-3 piezas)" },
+      { "nombre": "Aguacate", "calorias": "32 kcal (1 cucharada / 20g)" },
+      { "nombre": "Semillas de chía", "calorias": "24 kcal (1 cucharadita / 5g)" },
+      { "nombre": "Semillas de linaza molida", "calorias": "25 kcal (1 cucharadita)" },
+      { "nombre": "Mayonesa ligera", "calorias": "35 kcal (1 cucharadita)" },
+      { "nombre": "Queso crema light", "calorias": "30 kcal (1 cucharada)" },
+      { "nombre": "Leche de almendras sin azúcar", "calorias": "15-30 kcal por taza" },
+      { "nombre": "Cacahuates naturales", "calorias": "35 kcal (5 piezas)" },
+      { "nombre": "Almendras", "calorias": "28 kcal (4 piezas)" },
+      { "nombre": "Nueces de Castilla", "calorias": "26 kcal (1 mitad)" },
+      { "nombre": "Vinagreta ligera", "calorias": "20 kcal por porción" },
+      { "nombre": "Chocolate amargo 85%+ cacao", "calorias": "30 kcal (cuadrito de 5g)" },
+      { "nombre": "Yogur natural entero", "calorias": "15 kcal (1 cucharada)" }
+    ],
+    "fibra": [
+      { "nombre": "Espinacas crudas", "calorias_por_100g": 7 },
+      { "nombre": "Lechuga", "calorias_por_100g": 13 },
+      { "nombre": "Apio", "calorias_por_100g": 14 },
+      { "nombre": "Pepino (con cáscara)", "calorias_por_100g": 15 },
+      { "nombre": "Rábanos", "calorias_por_100g": 16 },
+      { "nombre": "Calabacita (zucchini)", "calorias_por_100g": 17 },
+      { "nombre": "Champiñones o setas", "calorias_por_100g": 22 },
+      { "nombre": "Jícama", "calorias_por_100g": 38 },
+      { "nombre": "Nopales cocidos", "calorias_por_100g": 22 },
+      { "nombre": "Coliflor", "calorias_por_100g": 25 },
+      { "nombre": "Brócoli", "calorias_por_100g": 34 },
+      { "nombre": "Pimiento morrón", "calorias_por_100g": 25 },
+      { "nombre": "Tomate / Jitomate", "calorias_por_100g": 18 },
+      { "nombre": "Berenjena", "calorias_por_100g": 25 },
+      { "nombre": "Fresa", "calorias_por_100g": 32 }
+    ],
+    "carbohidratos": [
+      { "nombre": "Fideos de Shirataki (Konjac)", "calorias_por_100g": 10 },
+      { "nombre": "Arroz de coliflor", "calorias_por_100g": 25 },
+      { "nombre": "Tortitas de arroz inflado", "calorias": "28-35 kcal (1 pieza)" },
+      { "nombre": "Tortilla de nopal", "calorias": "25-30 kcal (1 pieza)" },
+      { "nombre": "Tortilla de maíz tradicional", "calorias": "50-55 kcal (1 pieza)" },
+      { "nombre": "Avena en hojuelas", "calorias": "70 kcal (2 cucharadas / 20g)" },
+      { "nombre": "Manzana", "calorias_por_100g": 52 },
+      { "nombre": "Papaya", "calorias_por_100g": 43 },
+      { "nombre": "Sandía", "calorias_por_100g": 30 },
+      { "nombre": "Toronja", "calorias_por_100g": 32 },
+      { "nombre": "Melón", "calorias_por_100g": 34 },
+      { "nombre": "Lentejas cocidas", "calorias": "115 kcal (1/2 taza)" },
+      { "nombre": "Zanahoria (cruda)", "calorias_por_100g": 41 },
+      { "nombre": "Amaranto inflado natural", "calorias": "35 kcal (2 cucharadas)" },
+      { "nombre": "Pan integral tostado delgado", "calorias": "60 kcal (1 rebanada)" }
+    ]
+  }
+}

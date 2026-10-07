@@ -400,12 +400,19 @@ const GRUPOS = [
     { id: 'atun', e: '🐟', n: 'Atún en agua', corto: 'atún', por: '1 lata', kcal: 110, prot: 25, v: .5, frio: '1 lata de atún escurrida', r: ['25 g de proteína', 'Hambre apagada por horas'] },
     { id: 'claras', e: '🥚', n: 'Claras', corto: 'claras', por: '4 claras', kcal: 70, prot: 14, v: .75, frio: '4 claras', r: ['Medio sartén por 70 kcal', 'Se inflan al cocinarse'] },
     { id: 'pollo', e: '🍗', n: 'Pollo deshebrado', corto: 'pollo', por: '1 taza', kcal: 165, prot: 30, v: 1, frio: '1 taza de pollo deshebrado', r: ['30 g de proteína', 'Mucho que masticar'] },
-    { id: 'requeson', e: '🧀', n: 'Requesón', corto: 'requesón', por: '½ taza', kcal: 140, prot: 12, v: .5, frio: '½ taza de requesón', r: ['Cremoso sin crema', 'Calma el antojo de grasa'] },
+    { id: 'requeson', e: '🧀', n: 'Requesón', corto: 'requesón', por: '½ taza', kcal: 140, prot: 12, v: .5, frio: '½ taza de requesón', cremoso: true, art: 'el requesón', r: ['Cremoso sin crema', 'Calma el antojo de grasa'] },
     { id: 'pavo', e: '🦃', n: 'Jamón de pavo', corto: 'pavo', por: '4 rebanadas', kcal: 80, prot: 13, v: .5, frio: '4 rebanadas de pavo en tiritas', r: ['Listo en 0 minutos', 'Proteína sin cocinar'] },
     { id: 'surimi', e: '🦀', n: 'Surimi', corto: 'surimi', por: '4 barritas', kcal: 75, prot: 7, v: .5, frio: '4 barritas de surimi deshebradas', r: ['Rinde muchísimo', 'Antojo de mariscos, 75 kcal'] },
     { id: 'panela', e: '🧀', n: 'Queso panela', corto: 'panela', por: '60 g', kcal: 130, prot: 11, v: .4, frio: '60 g de queso panela en cubos', r: ['Queso que sí llena', 'Se dora sin derretirse'] },
     { id: 'sardina', e: '🐠', n: 'Sardina en jitomate', corto: 'sardina', por: '1 lata chica', kcal: 150, prot: 17, v: .5, frio: '1 lata chica de sardina desmenuzada', r: ['Omega 3 de lata', 'Grasa buena que calma el antojo'] },
-    { id: 'camaron', e: '🦐', n: 'Camarones cocidos', corto: 'camarones', por: '100 g', kcal: 100, prot: 20, v: .6, frio: '100 g de camarones cocidos', r: ['20 g de proteína', 'Casi sin grasa'] }
+    { id: 'camaron', e: '🦐', n: 'Camarones cocidos', corto: 'camarones', por: '100 g', kcal: 100, prot: 20, v: .6, frio: '100 g de camarones cocidos', r: ['20 g de proteína', 'Casi sin grasa'] },
+    { id: 'pescado', e: '🐡', n: 'Bacalao o merluza', corto: 'pescado blanco', por: '1 filete', kcal: 90, prot: 20, v: .6, frio: '1 filete de pescado blanco cocido y desmenuzado', r: ['20 g de proteína', 'De lo más ligero del mar'] },
+    { id: 'cottage', e: '🥣', n: 'Queso cottage light', corto: 'queso cottage', por: '½ taza', kcal: 85, prot: 13, v: .5, frio: '½ taza de queso cottage', cremoso: true, art: 'el queso cottage', r: ['Cremoso por 85 kcal', 'Proteína que no se cocina'] },
+    { id: 'yogur', e: '🥛', n: 'Yogur griego 0 %', corto: 'yogur griego', por: '¾ taza', kcal: 100, prot: 17, v: .75, frio: '¾ taza de yogur griego', cremoso: true, art: 'el yogur griego', r: ['17 g de proteína', 'Hace de crema sin serlo'] },
+    { id: 'tofu', e: '⬜', n: 'Tofu firme', corto: 'tofu', por: '120 g', kcal: 90, prot: 10, v: .6, frio: '120 g de tofu firme en cubos', r: ['Absorbe el sazón', 'Proteína vegetal ligera'] },
+    { id: 'lomo', e: '🥩', n: 'Lomo de cerdo magro', corto: 'lomo', por: '100 g', kcal: 120, prot: 21, v: .6, frio: '100 g de lomo de cerdo cocido en tiras', r: ['21 g de proteína', 'Carne de verdad, poca grasa'] },
+    { id: 'soya', e: '🌿', n: 'Soya texturizada', corto: 'soya', por: '1 taza hidratada', kcal: 95, prot: 14, v: 1, frio: '1 taza de soya texturizada hidratada y exprimida', r: ['Parece picadillo', 'Proteína y fibra juntas'] },
+    { id: 'pulpo', e: '🐙', n: 'Pulpo cocido', corto: 'pulpo', por: '100 g', kcal: 80, prot: 15, v: .6, frio: '100 g de pulpo cocido en trozos', r: ['Mucho que masticar', 'Marisco de 80 kcal'] }
   ]},
   { cat: 'carb', titulo: 'Carbohidratos de bajo IG', corto: 'Base', color: 'var(--maiz)', items: [
     { id: 'tortillas', e: '🌮', n: 'Tortillas nopal o maíz', corto: 'tortillas', por: '2 piezas', kcal: 80, prot: 2, v: .4, r: ['Tacos de verdad', 'No se siente a dieta'] },
@@ -417,10 +424,16 @@ const GRUPOS = [
     { id: 'lentejas', e: '🍲', n: 'Lentejas', corto: 'lentejas', por: '½ taza', kcal: 115, prot: 9, v: .5, r: ['Fibra + proteína', 'Digestión lenta, sin bajón'] },
     { id: 'frijoles', e: '🫘', n: 'Frijoles de la olla', corto: 'frijoles', por: '½ taza', kcal: 115, prot: 7, v: .5, r: ['7 g de fibra', 'Sin freír, llenan igual'] },
     { id: 'camote', e: '🍠', n: 'Camote cocido', corto: 'camote', por: '½ taza', kcal: 90, prot: 2, v: .5, suma: ['🍠', 'Suma el camote', '½ taza en cubos, ya cocido. 2 minutos hasta dorar.'], r: ['Dulce que no dispara', 'Energía lenta para el turno'] },
-    { id: 'elote', e: '🌽', n: 'Granos de elote', corto: 'elote', por: '½ taza', kcal: 70, prot: 2, v: .5, suma: ['🌽', 'Suma el elote', '½ taza de granos. 2 minutos hasta dorar.'], r: ['Antojo de esquite', 'Sin mayonesa, 70 kcal'] }
+    { id: 'elote', e: '🌽', n: 'Granos de elote', corto: 'elote', por: '½ taza', kcal: 70, prot: 2, v: .5, suma: ['🌽', 'Suma el elote', '½ taza de granos. 2 minutos hasta dorar.'], r: ['Antojo de esquite', 'Sin mayonesa, 70 kcal'] },
+    { id: 'manzana', e: '🍎', n: 'Manzana', corto: 'manzana', por: '1 chica', kcal: 70, prot: 0, v: 1, cierre: ['🍎', 'Cierra con manzana', '1 chica en gajos, con canela si quieres.'], r: ['Crujido dulce', 'Fibra que frena el azúcar'] },
+    { id: 'papaya', e: '🥭', n: 'Papaya', corto: 'papaya', por: '1 taza', kcal: 60, prot: 1, v: 1, cierre: ['🥭', 'Cierra con papaya', '1 taza en cubos con limón.'], r: ['Postre de 60 kcal', 'Suave para la digestión'] },
+    { id: 'sandia', e: '🍉', n: 'Sandía', corto: 'sandía', por: '1 taza', kcal: 45, prot: 1, v: 1, cierre: ['🍉', 'Cierra con sandía', '1 taza en cubos, bien fría.'], r: ['Casi pura agua', 'Dulce por 45 kcal'] },
+    { id: 'toronja', e: '🍊', n: 'Toronja', corto: 'toronja', por: '½ pieza', kcal: 40, prot: 1, v: .75, cierre: ['🍊', 'Cierra con toronja', '½ pieza en gajos.'], r: ['Ácida y fresca', 'Corta el antojo dulce'] },
+    { id: 'melon', e: '🍈', n: 'Melón', corto: 'melón', por: '1 taza', kcal: 55, prot: 1, v: 1, cierre: ['🍈', 'Cierra con melón', '1 taza en cubos, bien frío.'], r: ['Dulce y ligero', 'Mucho volumen, 55 kcal'] },
+    { id: 'amaranto', e: '🌾', n: 'Amaranto inflado', corto: 'amaranto', por: '2 cdas', kcal: 35, prot: 1, v: .25, cierre: ['🌾', 'Espolvorea amaranto', '2 cucharadas encima, al servir.'], r: ['Crujido ligero', 'Solo 35 kcal'] }
   ]},
   { cat: 'fibra', titulo: 'Fibra y volumen', corto: 'Volumen', color: 'var(--nopal)', items: [
-    { id: 'crudos', e: '🥕', n: 'Pepino, jícama o apio', corto: 'pepino y jícama', por: '1½ tazas', kcal: 30, prot: 1, v: 1.5, r: ['Casi pura agua', 'Botana libre mientras cocinas'] },
+    { id: 'crudos', e: '🥕', n: 'Pepino, jícama, apio o rábanos', corto: 'pepino y jícama', por: '1½ tazas', kcal: 30, prot: 1, v: 1.5, r: ['Casi pura agua', 'Botana libre mientras cocinas'] },
     { id: 'hojas', e: '🥬', n: 'Espinacas o lechuga', corto: 'espinacas', por: '2 tazas', kcal: 15, prot: 2, v: 2, r: ['Plato más grande', 'Tus ojos ven «comí mucho»'] },
     { id: 'calabacitas', e: '🥒', n: 'Calabacitas', corto: 'calabacitas', por: '1 mediana', kcal: 30, prot: 2, v: 1, corte: '1 calabacita en medias lunas', r: ['Doble de guiso', 'Por solo 30 kcal'] },
     { id: 'nopales', e: '🌵', n: 'Nopales', corto: 'nopales', por: '1 taza', kcal: 25, prot: 2, v: 1, corte: '1 taza de nopales en tiritas', r: ['Fibra que se hincha', 'De lo que más llena'] },
@@ -428,7 +441,12 @@ const GRUPOS = [
     { id: 'gelatina', e: '🍮', n: 'Gelatina light', corto: 'gelatina', por: '1 taza', kcal: 10, prot: 2, v: 1, r: ['Postre de 10 kcal', 'Señal de «ya terminé»'] },
     { id: 'brocoli', e: '🥦', n: 'Brócoli', corto: 'brócoli', por: '1 taza', kcal: 30, prot: 3, v: 1, corte: '1 taza de brócoli en ramitos chicos', r: ['Mucho que masticar', '30 kcal la taza'] },
     { id: 'ejotes', e: '🫛', n: 'Ejotes', corto: 'ejotes', por: '1 taza', kcal: 35, prot: 2, v: 1, corte: '1 taza de ejotes en trozos', r: ['Fibra crujiente', 'Rinden el guiso al doble'] },
-    { id: 'pimiento', e: '🫑', n: 'Pimiento', corto: 'pimiento', por: '1 pieza', kcal: 30, prot: 1, v: 1, corte: '1 pimiento en tiras', r: ['Color y dulzor', 'Sabor a fajitas sin grasa'] }
+    { id: 'pimiento', e: '🫑', n: 'Pimiento', corto: 'pimiento', por: '1 pieza', kcal: 30, prot: 1, v: 1, corte: '1 pimiento en tiras', r: ['Color y dulzor', 'Sabor a fajitas sin grasa'] },
+    { id: 'coliflorR', e: '🥦', n: 'Coliflor en ramitos', corto: 'coliflor', por: '1 taza', kcal: 25, prot: 2, v: 1, corte: '1 taza de coliflor en ramitos chicos', r: ['Llena el sartén', '25 kcal la taza'] },
+    { id: 'jitomate', e: '🍅', n: 'Jitomate', corto: 'jitomate', por: '1 pieza', kcal: 20, prot: 1, v: .75, corte: '1 jitomate en cubos', r: ['Jugoso y ligero', 'Hace salsa sin aceite'] },
+    { id: 'berenjena', e: '🍆', n: 'Berenjena', corto: 'berenjena', por: '1 taza', kcal: 20, prot: 1, v: 1, corte: '1 taza de berenjena en cubos', r: ['Textura carnosa', '20 kcal la taza'] },
+    { id: 'zanahoria', e: '🥕', n: 'Zanahoria', corto: 'zanahoria', por: '1 mediana', kcal: 25, prot: .5, v: .5, corte: '1 zanahoria rallada', r: ['Dulzor natural', 'Color y fibra por 25 kcal'] },
+    { id: 'fresa', e: '🍓', n: 'Fresas', corto: 'fresas', por: '1 taza', kcal: 50, prot: 1, v: 1, cierre: ['🍓', 'Cierra con fresas', '1 taza rebanadas.'], r: ['Postre con fibra', 'Una taza entera, 50 kcal'] }
   ]},
   { cat: 'grasa', titulo: 'Grasas mínimas', corto: 'Grasa', color: 'var(--aceite)', items: [
     { id: 'spray', e: '💨', n: 'Spray de aceite', corto: 'spray', por: '2 disparos', kcal: 5, prot: 0, v: 0, r: ['115 kcal ahorradas', 'Contra una cucharada de aceite'] },
@@ -438,13 +456,21 @@ const GRUPOS = [
     { id: 'aceitunas', e: '🫒', n: 'Aceitunas', corto: 'aceitunas', por: '5 piezas', kcal: 25, prot: 0, v: .1, r: ['Sal intensa', '25 kcal en todo el plato'] },
     { id: 'cacahuates', e: '🥜', n: 'Pocos cacahuates', corto: 'cacahuates', por: '10 piezas', kcal: 60, prot: 3, v: .05, r: ['Crujido tostado', 'Contados, no de la bolsa'] },
     { id: 'pepitas', e: '🎃', n: 'Pepitas', corto: 'pepitas', por: '1 cda', kcal: 55, prot: 3, v: .05, toque: '1 cucharada de pepitas tostadas', r: ['Crujido con magnesio', 'Una cucharada, no un puño'] },
-    { id: 'nuez', e: '🌰', n: 'Nuez', corto: 'nuez', por: '3 mitades', kcal: 40, prot: 1, v: .03, toque: '3 mitades de nuez troceadas', r: ['Grasa buena medida', 'Tres mitades bastan'] }
+    { id: 'nuez', e: '🌰', n: 'Nuez', corto: 'nuez', por: '3 mitades', kcal: 40, prot: 1, v: .03, toque: '3 mitades de nuez troceadas', r: ['Grasa buena medida', 'Tres mitades bastan'] },
+    { id: 'almendras', e: '🌰', n: 'Almendras', corto: 'almendras', por: '4 piezas', kcal: 28, prot: 1, v: .03, toque: '4 almendras troceadas', r: ['Crujido medido', 'Cuatro, no un puño'] },
+    { id: 'linaza', e: '🥄', n: 'Linaza molida', corto: 'linaza', por: '1 cdita', kcal: 25, prot: 1, v: .02, toque: '1 cucharadita de linaza molida', r: ['Fibra y omega 3', 'Una cucharadita basta'] },
+    { id: 'mayonesa', e: '🥫', n: 'Mayonesa ligera', corto: 'mayonesa ligera', por: '1 cdita', kcal: 35, prot: 0, v: .02, toque: '1 cucharadita de mayonesa ligera', r: ['Cremosidad medida', 'Una cucharadita, no a ojo'] },
+    { id: 'quesocrema', e: '🧈', n: 'Queso crema light', corto: 'queso crema', por: '1 cda', kcal: 30, prot: 1, v: .05, toque: '1 cucharada de queso crema light', r: ['Antojo cremoso', '30 kcal contadas'] },
+    { id: 'vinagreta', e: '🥗', n: 'Vinagreta ligera', corto: 'vinagreta', por: '1 cda', kcal: 20, prot: 0, v: .05, toque: '1 cucharada de vinagreta ligera', r: ['Sabor por 20 kcal', 'Aliño medido'] },
+    { id: 'yogurnat', e: '🍦', n: 'Yogur natural', corto: 'yogur natural', por: '1 cda', kcal: 15, prot: .5, v: .05, toque: '1 cucharada de yogur natural', r: ['En lugar de crema', '15 kcal la cucharada'] },
+    { id: 'chocolate', e: '🍫', n: 'Chocolate amargo 85 %', corto: 'chocolate amargo', por: '1 cuadrito', kcal: 30, prot: .5, v: .02, cierre: ['🍫', 'Cierra con chocolate amargo', '1 cuadrito de 5 g. Déjalo derretir despacio.'], r: ['Antojo resuelto', 'Un cuadrito, 30 kcal'] }
   ]},
   { cat: 'bebida', titulo: 'Bebidas sin azúcar', corto: 'Bebida', color: 'var(--bebida)', items: [
     { id: 'refresco', e: '🥤', n: 'Refresco sin azúcar', corto: 'refresco sin azúcar', por: '1 vaso de', kcal: 0, prot: 0, v: 0, txt: 'Bien frío y con mucho hielo. Sabor dulce, 0 kcal.' },
     { id: 'mineral', e: '🫧', n: 'Agua mineral con limón', corto: 'agua mineral con limón', por: '1 vaso de', kcal: 0, prot: 0, v: 0, txt: 'Con hielo y una pizca de sal. Las burbujas llenan.' },
     { id: 'jamaica', e: '🌺', n: 'Agua de jamaica sin azúcar', corto: 'agua de jamaica', por: '1 vaso de', kcal: 0, prot: 0, v: 0, txt: 'Sin azúcar o con endulzante. Fresca y de casa.' },
-    { id: 'te', e: '☕', n: 'Té o café sin azúcar', corto: 'té o café sin azúcar', por: '1 taza de', kcal: 0, prot: 0, v: 0, txt: 'Caliente y a sorbos. Si vas a dormir pronto, sin cafeína.' }
+    { id: 'te', e: '☕', n: 'Té o café sin azúcar', corto: 'té o café sin azúcar', por: '1 taza de', kcal: 0, prot: 0, v: 0, txt: 'Caliente y a sorbos. Si vas a dormir pronto, sin cafeína.' },
+    { id: 'lechealm', e: '🥛', n: 'Leche de almendras sin azúcar', corto: 'leche de almendras', por: '1 vaso de', kcal: 30, prot: 1, v: 0, txt: 'Fría o tibia con canela. Unas 30 kcal el vaso.' }
   ]}
 ];
 /* gramos por porción (aprox.): [carbohidratos, fibra, grasa] */
@@ -456,7 +482,12 @@ const MACROS = {
   crudos: [7, 3, 0], hojas: [2, 1.5, 0], calabacitas: [6, 2, 0], nopales: [5, 3, 0], champinones: [3, 1, 0],
   brocoli: [6, 2.5, 0], ejotes: [7, 3, 0], pimiento: [7, 2.5, 0],
   spray: [0, 0, .5], oliva: [0, 0, 4.5], chia: [2, 1.5, 1.5], aguacate: [3, 2, 4.5], aceitunas: [1, .5, 2.5],
-  cacahuates: [2, 1, 5], pepitas: [1, .5, 4.5], nuez: [1, .5, 4]
+  cacahuates: [2, 1, 5], pepitas: [1, .5, 4.5], nuez: [1, .5, 4],
+  pescado: [0, 0, 1], cottage: [4, 0, 1.5], yogur: [6, 0, 0], tofu: [2, 1, 5], lomo: [0, 0, 4], soya: [8, 4, .5], pulpo: [2, 0, 1],
+  manzana: [18, 3, 0], papaya: [15, 2.5, 0], sandia: [11, .5, 0], toronja: [10, 1.5, 0], melon: [13, 1.5, 0], amaranto: [6, .5, .5],
+  coliflorR: [5, 2, 0], jitomate: [4, 1.5, 0], berenjena: [5, 2.5, 0], zanahoria: [6, 2, 0], fresa: [11, 3, 0],
+  almendras: [1, .5, 2.5], linaza: [1, 1, 2], mayonesa: [.5, 0, 3.5], quesocrema: [1, 0, 2.5], vinagreta: [1, 0, 1.5],
+  yogurnat: [1, 0, .5], chocolate: [1.5, .5, 2.5], lechealm: [1, .5, 2.5]
 };
 /* IDX se llena en armar(), con la base más los cambios guardados */
 const IDX = {}, CAT = {}, BASE = {};
@@ -688,8 +719,11 @@ let ultimoSazon = null, ultimoCierre = null, recetaActual = null;
 
 function componer(sel) {
   const de = cat => sel.filter(id => IDX[id].cat === cat);
-  const P = mezclar(de('prote')).slice(0, 2);
-  const C = alAzar(de('carb')) || null;
+  let P = mezclar(de('prote')).slice(0, 2);
+  /* los cremosos (requesón, cottage, yogur) se mezclan al final con el fuego apagado; solo cabe uno */
+  if (P.length === 2 && P.every(p => IDX[p].cremoso)) P = P.slice(0, 1);
+  const crema = P.find(p => IDX[p].cremoso) || null;
+  const C = alAzar(de('carb').filter(id => !IDX[id].cierre)) || null;
   const F = de('fibra'), G = de('grasa');
   const gel = F.includes('gelatina'), crudos = F.includes('crudos'), hojas = F.includes('hojas');
   const hot = F.filter(x => IDX[x].corte);
@@ -699,30 +733,30 @@ function componer(sel) {
   const pasos = [];
   const tiene = id => P.includes(id);
   const frio = ids => ids.map(id => IDX[id].frio);
-  const BOTANA = ['🥕', 'Botanea mientras cocinas', '1½ tazas de pepino, jícama o apio con limón y chile.'];
+  const BOTANA = ['🥕', 'Botanea mientras cocinas', '1½ tazas de pepino, jícama, apio o rábanos con limón y chile.'];
   const POSTRE = ['🍮', 'Cierra con gelatina light', '1 taza. Lo dulce marca el final.'];
 
   let modo = C || 'plato';
   if (C === 'avena') {
-    const salados = P.filter(p => p !== 'claras' && p !== 'requeson');
+    const salados = P.filter(p => p !== 'claras' && !IDX[p].cremoso);
     modo = salados.length ? 'tortitasAvena' : (P.length && !hot.length ? 'dulce' : 'avenaSalada');
   }
 
   if (modo === 'dulce') {
-    const tops = ['chia', 'cacahuates', 'nuez'].filter(x => G.includes(x));
+    const tops = ['chia', 'cacahuates', 'nuez', 'almendras', 'linaza'].filter(x => G.includes(x));
     tops.forEach(x => usados.add(x));
     let nombre;
     if (crudos) { usados.add('crudos'); pasos.push(BOTANA); }
     if (tiene('claras')) {
       const grasa = G.includes('spray') ? (usados.add('spray'), '2 disparos de spray') : 'sin grasa';
       nombre = 'Hot cakes esponjosos de avena y canela';
-      pasos.push(['🥣', 'Bate todo', `¼ taza de avena, 4 claras${tiene('requeson') ? ', ½ taza de requesón' : ''}, canela, vainilla y endulzante. Reposa 2 min.`]);
+      pasos.push(['🥣', 'Bate todo', `¼ taza de avena, 4 claras${crema ? `, ${IDX[crema].por} de ${IDX[crema].corto}` : ''}, canela, vainilla y endulzante. Reposa 2 min.`]);
       pasos.push(['🍳', 'Vierte 3 círculos chicos', `Sartén a fuego medio, ${grasa}.`]);
       pasos.push(['🥞', 'Voltea al ver burbujas', '2 minutos por lado.']);
     } else {
       nombre = 'Avena cremosa tipo arroz con leche';
       pasos.push(['🥣', 'Cocina la avena', '¼ taza + ¾ taza de agua y canela. 3 a 4 min moviendo.']);
-      pasos.push(['🧀', 'Apaga y mezcla el requesón', '½ taza, con vainilla y endulzante.']);
+      pasos.push([IDX[crema].e, 'Apaga y mezcla ' + IDX[crema].art, `${cap(IDX[crema].por)}, con vainilla y endulzante.`]);
     }
     if (tops.length) pasos.push(['✨', 'Decora', cap(lista(tops.map(x => IDX[x].por + ' de ' + IDX[x].corto))) + '.']);
     if (gel) pasos.push(POSTRE);
@@ -765,20 +799,20 @@ function componer(sel) {
     if (hot.length) pasos.push(SALTEA);
     pasos.push(['🥣', 'Cocina la avena', `¼ taza + ¾ taza de agua, sal y ${saz.txt}. 4 min moviendo.`]);
     if (tiene('claras')) pasos.push(['🥚', 'Agrega 4 claras', 'Mueve rápido 1 minuto.']);
-    if (tiene('requeson')) pasos.push(['🧀', 'Apaga y mezcla el requesón', '½ taza, para que quede cremosa.']);
+    if (crema) pasos.push([IDX[crema].e, 'Apaga y mezcla ' + IDX[crema].art, `${cap(IDX[crema].por)}, para que quede cremosa.`]);
     if (hojas) { usados.add('hojas'); pasos.push(['🥬', 'Espinacas al final', '2 tazas, 30 segundos.']); }
   } else {
     if (modo === 'shirataki') pasos.push(['🍜', 'Enjuaga y seca los fideos', '1 min bajo el chorro, 2 min en sartén seco. Aparta.']);
     if (sarten) {
       pasos.push(hot.length ? SALTEA : ['🔥', 'Calienta el sartén', `Fuego medio con ${cocinar}.`]);
-      const pc = P.filter(p => p !== 'requeson');
+      const pc = P.filter(p => !IDX[p].cremoso);
       if (pc.length) pasos.push(['🍳', 'Agrega la proteína', `${cap(lista(frio(pc)))}${tiene('claras') ? ', revolviendo hasta que cuajen' : ''}. Sazona con ${saz.txt}. 2 min.`]);
       else pasos.push(['🌶️', 'Sazona', cap(saz.txt) + '.']);
       if (modo === 'coliflor') pasos.push(['🥦', 'Suma el arroz de coliflor', '1½ tazas a fuego alto, 3 a 4 min sin tapar.']);
       if (modo === 'shirataki') pasos.push(['🍜', 'Regresa los fideos', '1 minuto, para que agarren sabor.']);
       if (olla) pasos.push([IDX[modo].e, 'Agrega ' + ollaTxt[0], `½ taza de ${ollaTxt[1]}. 2 minutos.`]);
       if (IDX[modo] && IDX[modo].suma) pasos.push(IDX[modo].suma);
-      if (tiene('requeson')) pasos.push(['🧀', 'Apaga y mezcla el requesón', '½ taza. Cremoso sin crema.']);
+      if (crema) pasos.push([IDX[crema].e, 'Apaga y mezcla ' + IDX[crema].art, `${cap(IDX[crema].por)}. Cremoso sin crema.`]);
     } else {
       const mezcla = frio(P);
       if (olla) mezcla.push('½ taza de ' + ollaTxt[1]);
@@ -804,7 +838,7 @@ function componer(sel) {
     : crudosMezclados ? 'pepino y jícama' : hojas ? 'espinacas' : (olla ? 'limón' : 'la casa');
   let cola = `${base} ${saz.suf}`, especial = true;
   if (tiene('pollo') && sazId === 'chipotle') cola = 'tinga ligera de pollo' + (P.length > 1 ? ' con ' + IDX[P.find(p => p !== 'pollo')].corto : '');
-  else if (!sarten && sazId === 'limon' && (tiene('atun') || tiene('surimi') || tiene('camaron'))) cola = 'ceviche de ' + lista(P.map(p => IDX[p].corto));
+  else if (!sarten && sazId === 'limon' && (tiene('atun') || tiene('surimi') || tiene('camaron') || tiene('pulpo'))) cola = 'ceviche de ' + lista(P.map(p => IDX[p].corto));
   else if (tiene('claras') && sazId === 'mex' && P.length === 1) cola = 'claras a la mexicana';
   else especial = false;
   let nombre = modo === 'plato' && especial ? cap(cola) : `${alAzar(!sarten && m.frios || m.nombres)} ${m.con} ${cola}`;
@@ -835,6 +869,9 @@ function generar(desdeBoton) {
   if (!sel.length) { $aviso.textContent = 'Marca al menos un alimento y te armo algo rico con eso.'; $aviso.hidden = false; return; }
   $aviso.hidden = true;
   const r = componer(sel);
+  /* fruta, amaranto o chocolate: van al final, no a la sartén */
+  const fin = alAzar(sel.filter(id => IDX[id].cierre));
+  if (fin) { r.usados.add(fin); r.pasos.push(IDX[fin].cierre); }
   const beb = alAzar(sel.filter(id => IDX[id].cat === 'bebida'));
   if (beb) { r.usados.add(beb); r.pasos.push([IDX[beb].e, 'Acompaña con ' + IDX[beb].corto, IDX[beb].txt]); }
   const orden = ['prote', 'carb', 'fibra', 'grasa', 'bebida'];
@@ -843,7 +880,7 @@ function generar(desdeBoton) {
     const its = u.filter(id => IDX[id].cat === cat);
     return { cat, color: CAT[cat].color, nombre: CAT[cat].corto, its, v: its.reduce((s, id) => s + IDX[id].v, 0), k: its.reduce((s, id) => s + IDX[id].kcal, 0) };
   }).filter(p => p.its.length);
-  const kcal = Math.round(partes.reduce((s, p) => s + p.k, 0) / 10) * 10 || 10;
+  const kcal = Math.round(u.reduce((s, id) => s + IDX[id].kcal, 0) / 10) * 10 || 10;
   const totalV = partes.reduce((s, p) => s + p.v, 0) || .5;
   const prot = u.reduce((s, id) => s + IDX[id].prot, 0);
   const mac = i => Math.round(u.reduce((s, id) => s + IDX[id].m[i], 0));
