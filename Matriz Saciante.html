@@ -75,6 +75,14 @@ header { display: flex; flex-direction: column; gap: 14px; }
 .chip:active { transform: scale(.96); }
 .chip-name { font-weight: 600; font-size: .86rem; line-height: 1.15; }
 .chip-por { font-size: .74rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+/* cada ficha lleva debajo su control de cantidad, visible solo si está marcada */
+.ficha { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.ficha .chip { flex: 1; }
+.cant { display: flex; align-items: center; justify-content: space-between; background: var(--surface); border: 1.5px solid var(--c); border-radius: 999px; padding: 2px; }
+.cant b { font-size: .8rem; font-variant-numeric: tabular-nums; }
+.cant button { width: 30px; height: 30px; border: 0; border-radius: 50%; background: color-mix(in srgb, var(--c) 14%, var(--surface)); color: var(--c); font-weight: 700; font-size: 1.05rem; line-height: 1; padding: 0; }
+.cant button:disabled { opacity: .35; cursor: default; }
+.chip[aria-pressed="false"] + .cant, .editando .cant { display: none; }
 .chip[aria-pressed="true"] { border-color: var(--c); background: color-mix(in srgb, var(--c) 14%, var(--surface)); }
 .chip[aria-pressed="true"]::after {
   content: "✓"; position: absolute; top: 5px; right: 6px; width: 18px; height: 18px; border-radius: 50%;
@@ -599,7 +607,17 @@ try {
   const g = JSON.parse(localStorage.getItem(CLAVE));
   if (Array.isArray(g)) { seleccion = new Set(g.filter(id => IDX[id])); esEjemplo = false; }
 } catch (e) {}
-const guardar = () => { try { localStorage.setItem(CLAVE, JSON.stringify([...seleccion])); } catch (e) {} };
+/* cuántas porciones de cada alimento marcado (1 si no aparece) */
+const CLAVE_CANT = 'matriz-saciante-cantidades';
+let cantidades = {};
+try {
+  const g = JSON.parse(localStorage.getItem(CLAVE_CANT));
+  if (g && typeof g === 'object') Object.keys(g).forEach(id => { if (IDX[id] && seleccion.has(id)) cantidades[id] = Math.min(3, Math.max(.5, Math.round(+g[id] * 2) / 2 || 1)); });
+} catch (e) {}
+const X = id => cantidades[id] || 1;
+const guardar = () => { try { localStorage.setItem(CLAVE, JSON.stringify([...seleccion])); localStorage.setItem(CLAVE_CANT, JSON.stringify(cantidades)); } catch (e) {} };
+const textoPor = it => `${X(it.id) === 1 ? '' : frac(X(it.id)) + ' × '}${it.por.replace(/ de$/, '')} ·${Math.round(it.kcal * X(it.id))} kcal`;
+const textoCant = id => `${frac(X(id))} ${X(id) > 1 ? 'porciones' : 'porción'}`;
 
 /* ---------- matriz ---------- */
 const $grupos = document.getElementById('grupos'), $conteo = document.getElementById('conteo');
@@ -612,7 +630,8 @@ function pintarMatriz() {
     sec.className = 'grupo';
     sec.style.setProperty('--c', g.color);
     sec.innerHTML = `<div class="grupo-title"><h3>${g.titulo}</h3><span class="barra"></span></div>
-      <div class="chips">${g.items.map(it => `<button type="button" class="chip" id="chip-${it.id}" data-id="${it.id}" aria-pressed="${seleccion.has(it.id)}"><span class="emoji" aria-hidden="true">${it.e}</span><span class="chip-name">${it.n}</span><span class="chip-por">${it.por.replace(/ de$/, '')} ·${it.kcal} kcal</span></button>`).join('')}${editando ? `<button type="button" class="chip nuevo" data-nuevo="${g.cat}" aria-label="Agregar a ${g.titulo}">＋<span class="chip-name">Agregar</span></button>` : ''}</div>`;
+      <div class="chips">${g.items.map(it => `<div class="ficha"><button type="button" class="chip" id="chip-${it.id}" data-id="${it.id}" aria-pressed="${seleccion.has(it.id)}"><span class="emoji" aria-hidden="true">${it.e}</span><span class="chip-name">${it.n}</span><span class="chip-por">${textoPor(it)}</span></button>
+        <div class="cant" data-id="${it.id}"><button type="button" data-c="-0.5" aria-label="Menos ${it.n}"${X(it.id) <= .5 ? ' disabled' : ''}>−</button><b>${textoCant(it.id)}</b><button type="button" data-c="0.5" aria-label="Más ${it.n}"${X(it.id) >= 3 ? ' disabled' : ''}>+</button></div></div>`).join('')}${editando ? `<button type="button" class="chip nuevo" data-nuevo="${g.cat}" aria-label="Agregar a ${g.titulo}">＋<span class="chip-name">Agregar</span></button>` : ''}</div>`;
     $grupos.appendChild(sec);
   });
 }
@@ -622,17 +641,26 @@ function contar() {
 }
 contar();
 $grupos.addEventListener('click', e => {
+  const c = e.target.closest('[data-c]');
+  if (c) {
+    const $cant = c.parentElement, id = $cant.dataset.id, x = Math.min(3, Math.max(.5, X(id) + +c.dataset.c));
+    if (x === 1) delete cantidades[id]; else cantidades[id] = x;
+    $cant.querySelector('b').textContent = textoCant(id);
+    $cant.firstElementChild.disabled = x <= .5; $cant.lastElementChild.disabled = x >= 3;
+    document.querySelector(`#chip-${id} .chip-por`).textContent = textoPor(IDX[id]);
+    return guardar();
+  }
   const b = e.target.closest('.chip'); if (!b) return;
   if (editando) return abrirEditor(b.dataset.id, b.dataset.nuevo);
   const id = b.dataset.id;
   seleccion.has(id) ? seleccion.delete(id) : seleccion.add(id);
   b.setAttribute('aria-pressed', seleccion.has(id));
+  if (!seleccion.has(id) && cantidades[id]) { delete cantidades[id]; return pintarMatriz(), contar(), guardar(); }
   document.getElementById('aviso').hidden = true;
   contar(); guardar();
 });
 document.getElementById('limpiar').addEventListener('click', () => {
-  seleccion.clear(); guardar(); contar();
-  document.querySelectorAll('.chip').forEach(c => c.setAttribute('aria-pressed', 'false'));
+  seleccion.clear(); cantidades = {}; guardar(); pintarMatriz(); contar();
 });
 
 /* ---------- editor de alimentos ---------- */
@@ -654,7 +682,7 @@ function abrirEditor(id, catNueva) {
   ['carb', 'fibra', 'grasa'].forEach((k, i) => { $ed(k).value = it ? it.m[i] : ''; });
   ['n', 'por', 'e'].forEach(k => { $ed(k).disabled = enEdicion.fijo; });
   document.getElementById('editor-nota').textContent = enEdicion.fijo
-    ? 'El nombre y la porción de este alimento van ligados a los pasos de las recetas. Puedes ajustar sus valores o quitarlo.'
+    ? 'Aquí ajustas sus valores o lo quitas. Para comer más o menos cantidad, sal de la edición, márcalo y usa los botones − y + que aparecen debajo.'
     : 'Si no sabes las calorías o los gramos, déjalos vacíos: se calculan solos para la porción que escribas.';
   document.getElementById('editor-quitar').hidden = !it;
   $editor.showModal();
@@ -888,12 +916,13 @@ function generar(desdeBoton) {
   const u = [...r.usados].sort((a, b) => orden.indexOf(IDX[a].cat) - orden.indexOf(IDX[b].cat));
   const partes = orden.slice(0, 4).map(cat => {
     const its = u.filter(id => IDX[id].cat === cat);
-    return { cat, color: CAT[cat].color, nombre: CAT[cat].corto, its, v: its.reduce((s, id) => s + IDX[id].v, 0), k: its.reduce((s, id) => s + IDX[id].kcal, 0) };
+    return { cat, color: CAT[cat].color, nombre: CAT[cat].corto, its, v: its.reduce((s, id) => s + IDX[id].v * X(id), 0), k: Math.round(its.reduce((s, id) => s + IDX[id].kcal * X(id), 0)) };
   }).filter(p => p.its.length);
-  const kcal = Math.round(u.reduce((s, id) => s + IDX[id].kcal, 0) / 10) * 10 || 10;
+  const kcal = Math.round(u.reduce((s, id) => s + IDX[id].kcal * X(id), 0) / 10) * 10 || 10;
   const totalV = partes.reduce((s, p) => s + p.v, 0) || .5;
-  const prot = u.reduce((s, id) => s + IDX[id].prot, 0);
-  const mac = i => Math.round(u.reduce((s, id) => s + IDX[id].m[i], 0));
+  const prot = Math.round(u.reduce((s, id) => s + IDX[id].prot * X(id), 0));
+  const mac = i => Math.round(u.reduce((s, id) => s + IDX[id].m[i] * X(id), 0));
+  const ajustada = u.some(id => X(id) !== 1);
   recetaActual = { n: r.nombre, kcal, prot, carb: mac(0), fibra: mac(1), grasa: mac(2) };
   const sobrantes = sel.filter(id => !r.usados.has(id));
   const sinProte = !partes.some(p => p.cat === 'prote');
@@ -916,7 +945,7 @@ function generar(desdeBoton) {
       <div class="dato"><b>≈${prot} g</b><span>proteína</span></div>
     </div>
     <div class="ings">
-      ${u.map(id => `<span class="ing" style="--c:${CAT[IDX[id].cat].color}"><span class="emoji" aria-hidden="true">${IDX[id].e}</span>${IDX[id].por} ${IDX[id].corto}</span>`).join('')}
+      ${u.map(id => `<span class="ing" style="--c:${CAT[IDX[id].cat].color}"><span class="emoji" aria-hidden="true">${IDX[id].e}</span>${X(id) === 1 ? '' : frac(X(id)) + ' × '}${IDX[id].por} ${IDX[id].corto}</span>`).join('')}
       <span class="ing sazon"><span class="emoji" aria-hidden="true">🌶️</span>${r.sazon ? cap(r.sazon) : 'Canela, vainilla y endulzante'}</span>
     </div>
 
@@ -941,6 +970,7 @@ function generar(desdeBoton) {
 
     <div>
       <h3 style="margin-bottom:12px">Paso a paso</h3>
+      ${ajustada ? '<p class="nota" style="margin-bottom:12px">Cambiaste cantidades: los pasos hablan de 1 porción, así que guíate por las cantidades de la lista de arriba.</p>' : ''}
       <ol class="pasos">${r.pasos.map((p, i) => `<li class="paso"><span class="paso-ico emoji" aria-hidden="true">${p[0]}<i>${i + 1}</i></span><div class="paso-txt"><b>${p[1]}</b><span>${p[2]}</span></div></li>`).join('')}</ol>
     </div>
 
@@ -1084,7 +1114,9 @@ function pintarSugerencias() {
 }
 $sug.addEventListener('click', e => {
   if (!e.target.closest('#usar-sugeridos')) return;
-  seleccion = new Set(sugeridos.map(o => o.id).filter(id => IDX[id])); esEjemplo = false;
+  const validos = sugeridos.filter(o => IDX[o.id]);
+  seleccion = new Set(validos.map(o => o.id)); esEjemplo = false;
+  cantidades = {}; validos.forEach(o => { if (o.x !== 1) cantidades[o.id] = o.x; });
   guardar(); pintarMatriz(); contar(); generar(true);
 });
 function sumarAlDia(c, x) {
