@@ -185,8 +185,13 @@ header { display: flex; flex-direction: column; gap: 14px; }
 .otra.lleno:hover { background: var(--nopal); filter: brightness(1.08); }
 .registro { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
 .registro:empty { display: none; }
-.registro li { display: flex; align-items: center; gap: 10px; background: var(--surface-2); border-radius: 12px; padding: 8px 8px 8px 12px; font-size: .9rem; }
-.registro span { flex: 1; min-width: 0; }
+.registro li { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; background: var(--surface-2); border-radius: 12px; padding: 8px 8px 8px 12px; font-size: .9rem; }
+.registro span { flex: 1 1 150px; min-width: 0; }
+.porcion { display: flex; align-items: center; gap: 2px; background: var(--surface); border-radius: 999px; padding: 2px; }
+.porcion i { font-style: normal; font-weight: 600; font-size: .82rem; min-width: 5.6em; text-align: center; font-variant-numeric: tabular-nums; }
+.porcion button { width: 28px; height: 28px; border-radius: 50%; padding: 0; color: var(--nopal); font-weight: 700; }
+.porcion button:disabled { opacity: .35; cursor: default; }
+.guia-manos img { display: block; width: 100%; height: auto; border-radius: 12px; margin-top: 10px; }
 .registro b { font-variant-numeric: tabular-nums; white-space: nowrap; }
 .registro button { border: 0; background: none; color: var(--muted); font-size: 1.2rem; line-height: 1; padding: 4px 8px; border-radius: 8px; }
 .config { background: var(--surface-2); }
@@ -289,6 +294,10 @@ summary { font-weight: 700; cursor: pointer; }
       <p class="nota" id="foto-estado" role="status" hidden></p>
       <div id="analisis"></div>
       <ul class="registro" id="registro"></ul>
+      <details class="config guia-manos">
+        <summary>Guía: mide tus porciones con las manos</summary>
+        <img src="porciones-con-las-manos.jpeg" loading="lazy" width="1000" height="1294" alt="Guía para medir porciones con las manos: frente del puño, ½ taza de cereales como pasta o arroz; dos manos juntas, 2 tazas de verduras; punta del dedo índice, 1 cucharadita de grasas; una palma, 90 g de carne, pollo o pescado; pulgar, 1 cucharada o 15 g de queso; costado del puño, 1 taza de fruta.">
+      </details>
       <details class="config" id="config">
         <summary>Clave de Gemini para analizar fotos</summary>
         <div class="config-in">
@@ -542,6 +551,7 @@ const mezclar = a => a.map(v => [Math.random(), v]).sort((x, y) => x[0] - y[0]).
 const alAzar = a => a[Math.floor(Math.random() * a.length)];
 const lista = a => a.length < 2 ? (a[0] || '') : a.slice(0, -1).join(', ') + ' y ' + a[a.length - 1];
 const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+const frac = x => { const n = Math.floor(x); return (n || '') + ({ .25: '¼', .5: '½', .75: '¾' }[x - n] || '') || '0'; };
 const tazas = v => { const r = Math.round(v * 2) / 2, n = Math.floor(r); return (n || '') + (r % 1 ? '½' : '') || '½'; };
 
 /* ---------- matriz editable: valores cambiados, alimentos ocultos y alimentos propios ---------- */
@@ -942,23 +952,28 @@ function generar(desdeBoton) {
     ${sinProte ? '<p class="nota"><strong>Consejo:</strong> agrega una proteína y la saciedad te dura varias horas más.</p>' : ''}
     ${sobrantes.length ? `<p class="nota">Para otra comida: ${lista(sobrantes.map(id => IDX[id].n.toLowerCase()))}.</p>` : ''}
     <div class="receta-acciones">
+      <p class="veredicto" id="receta-cabe" style="flex-basis:100%;text-align:center"></p>
       <button class="otra lleno" type="button" id="sumar-receta">Sumar a mi día</button>
       <button class="otra" type="button" id="otra">Otra versión con lo mismo</button>
     </div>
   </article>`;
   document.getElementById('otra').addEventListener('click', () => generar(true));
   document.getElementById('sumar-receta').addEventListener('click', e => {
-    sumarAlDia(recetaActual);
-    e.currentTarget.disabled = true; e.currentTarget.textContent = 'Sumada a tu día ✓';
+    e.currentTarget.disabled = true;
+    sumarAlDia(recetaActual, recetaActual.x);
+    e.currentTarget.textContent = 'Sumada a tu día ✓';
+    document.getElementById('receta-cabe').textContent = 'Si comiste más o menos, ajusta la porción en tu registro del día.';
+    document.getElementById('receta-cabe').classList.remove('mal');
   });
+  pintarCabe();
   if (desdeBoton) $res.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
 }
 document.getElementById('generar').addEventListener('click', () => generar(true));
-generar(false);
 
 /* ---------- mi día: metas y foto con Gemini ---------- */
+const META_KCAL = 1450;
 const METAS = [
-  { k: 'kcal', n: 'Calorías', u: 'kcal', min: 0, max: 1500, rango: '1500', tope: true, color: 'var(--nopal)' },
+  { k: 'kcal', n: 'Calorías', u: 'kcal', min: 0, max: META_KCAL, rango: String(META_KCAL), tope: true, color: 'var(--nopal)' },
   { k: 'prot', n: 'Proteína', u: 'g', min: 80, max: 90, rango: '80–90', color: 'var(--jamaica)' },
   { k: 'fibra', n: 'Fibra', u: 'g', min: 25, max: 30, rango: '25–30', color: 'var(--nopal)' },
   { k: 'grasa', n: 'Grasas saludables', u: 'g', min: 35, max: 40, rango: '35–40', tope: true, color: 'var(--aceite)' },
@@ -974,7 +989,8 @@ try {
   if (g && g.fecha === hoy() && Array.isArray(g.items)) dia = g;
 } catch (e) {}
 const guardarDia = () => { try { localStorage.setItem(CLAVE_DIA, JSON.stringify(dia)); } catch (e) {} };
-const total = k => Math.round(dia.items.reduce((s, it) => s + (+it[k] || 0), 0));
+/* cada registro guarda los valores de 1 porción y cuántas porciones comió (x) */
+const total = k => Math.round(dia.items.reduce((s, it) => s + (+it[k] || 0) * (+it.x || 1), 0));
 
 const $metas = document.getElementById('metas'), $registro = document.getElementById('registro'),
       $analisis = document.getElementById('analisis'), $fotoEstado = document.getElementById('foto-estado'),
@@ -996,8 +1012,27 @@ function pintarDia() {
       <div class="meta-pista"><div class="meta-barra" style="width:${Math.min(100, v / m.max * 100).toFixed(1)}%"></div>${m.min ? `<i style="left:${(m.min / m.max * 100).toFixed(1)}%"></i>` : ''}</div>
       <small>${estadoMeta(m, v)}</small></div>`;
   }).join('');
-  $registro.innerHTML = dia.items.map((it, i) => `<li><span>${esc(it.hora)} · ${esc(it.n)}</span><b>${Math.round(it.kcal)} kcal</b><button type="button" data-i="${i}" aria-label="Quitar ${esc(it.n)}">×</button></li>`).join('');
-  pintarSugerencias();
+  $registro.innerHTML = dia.items.map((it, i) => {
+    const x = +it.x || 1;
+    return `<li><span>${esc(it.hora)} · ${esc(it.n)}</span>
+      <div class="porcion"><button type="button" data-i="${i}" data-d="-0.25" aria-label="Menos porción de ${esc(it.n)}"${x <= .25 ? ' disabled' : ''}>−</button><i>${frac(x)} ${x > 1 ? 'porciones' : 'porción'}</i><button type="button" data-i="${i}" data-d="0.25" aria-label="Más porción de ${esc(it.n)}"${x >= 4 ? ' disabled' : ''}>+</button></div>
+      <b>${Math.round(it.kcal * x)} kcal</b><button type="button" data-i="${i}" aria-label="Quitar ${esc(it.n)}">×</button></li>`;
+  }).join('');
+  pintarSugerencias(); pintarCabe();
+}
+/* dice si la receta en pantalla cabe en lo que queda del día y, si no, qué fracción servirse */
+function pintarCabe() {
+  const $c = document.getElementById('receta-cabe'), $b = document.getElementById('sumar-receta');
+  if (!$c || !recetaActual || $b.disabled) return;
+  const queda = META_KCAL - total('kcal'), k = recetaActual.kcal;
+  const x = k <= queda ? 1 : Math.max(.25, Math.floor(queda / k * 4) / 4);
+  recetaActual.x = x;
+  $c.classList.toggle('mal', x < 1);
+  if (queda <= 0) $c.textContent = `Hoy ya llegaste a tus ${META_KCAL} kcal. Guarda esta receta para mañana.`;
+  else if (x === 1) $c.textContent = `Cabe completa: te quedarían ${queda - k} kcal para hoy.`;
+  else if (k * x <= queda) $c.textContent = `Te quedan ${queda} kcal: sírvete ${frac(x)} porción (unas ${Math.round(k * x)} kcal).`;
+  else $c.textContent = `Te quedan solo ${queda} kcal: ni ¼ de porción cabe del todo.`;
+  $b.textContent = x < 1 ? `Sumar ${frac(x)} porción a mi día` : 'Sumar a mi día';
 }
 
 /* qué conviene comer con lo que falta del día, tomado de su propia matriz */
@@ -1009,26 +1044,38 @@ const NUTRI = [
 ];
 let sugeridos = [];
 function pintarSugerencias() {
-  const queda = 1500 - total('kcal'), margenGrasa = 40 - total('grasa'), margenCarb = 130 - total('carb');
-  const cabe = it => it.kcal <= queda && it.m[2] <= Math.max(margenGrasa, 1) && it.m[0] <= Math.max(margenCarb, 3);
+  const queda = META_KCAL - total('kcal'), margenGrasa = 40 - total('grasa'), margenCarb = 130 - total('carb');
+  let presupuesto = queda;
+  const medias = x => Math.floor(x * 2 + 1e-9) / 2;
   const faltas = NUTRI.map(nu => ({ nu, falta: nu.min - total(nu.k) })).filter(f => f.falta > f.nu.umbral)
     .sort((a, b) => b.falta / b.nu.min - a.falta / a.nu.min);
   sugeridos = [];
   const filas = queda <= 0 ? '' : faltas.map(f => {
     const peso = f.nu.orden || f.nu.de;
-    const ops = Object.values(IDX).filter(it => it.cat === f.nu.cat && f.nu.de(it) >= f.nu.piso && cabe(it))
-      .sort((a, b) => peso(b) / Math.max(b.kcal, 20) - peso(a) / Math.max(a.kcal, 20)).slice(0, 3);
+    /* porciones (de ½ en ½, máximo 2) que cubren lo que falta sin pasar las calorías ni los topes que quedan */
+    const porciones = it => {
+      const cubre = Math.min(2, Math.max(.5, Math.ceil(f.falta / f.nu.de(it) * 2 - 1e-9) / 2));
+      let cabe = presupuesto / Math.max(it.kcal, 1);
+      if (it.m[2] > 0) cabe = Math.min(cabe, Math.max(margenGrasa, 1) / it.m[2]);
+      if (it.m[0] > 0) cabe = Math.min(cabe, Math.max(margenCarb, 3) / it.m[0]);
+      return Math.min(cubre, medias(cabe));
+    };
+    const ops = Object.values(IDX).filter(it => it.cat === f.nu.cat && f.nu.de(it) >= f.nu.piso).map(it => ({ it, x: porciones(it) })).filter(o => o.x >= .5)
+      .sort((a, b) => peso(b.it) / Math.max(b.it.kcal, 20) - peso(a.it) / Math.max(a.it.kcal, 20)).slice(0, 3);
     if (!ops.length) return '';
-    sugeridos.push(ops[0].id);
-    return `<div class="sug"><b>Te faltan ${f.falta} g de ${f.nu.n}</b><div class="ings">${ops.map(it => `<span class="ing" style="--c:${CAT[it.cat].color}"><span class="emoji" aria-hidden="true">${it.e}</span>${it.n} · ${it.por.replace(/ de$/, '')} · ${f.nu.de(it)} g</span>`).join('')}</div></div>`;
+    sugeridos.push({ id: ops[0].it.id, x: ops[0].x });
+    presupuesto -= ops[0].it.kcal * ops[0].x;
+    return `<div class="sug"><b>Te faltan ${f.falta} g de ${f.nu.n}</b><div class="ings">${ops.map(({ it, x }) => `<span class="ing" style="--c:${CAT[it.cat].color}"><span class="emoji" aria-hidden="true">${it.e}</span>${it.n} · ${x === 1 ? '' : frac(x) + ' × '}${it.por.replace(/ de$/, '')} · ${Math.round(f.nu.de(it) * x)} g · ${Math.round(it.kcal * x)} kcal</span>`).join('')}</div></div>`;
   }).join('');
+  const usado = Math.round(sugeridos.reduce((s, o) => s + IDX[o.id].kcal * o.x, 0));
   const kcalFaltas = faltas.reduce((s, f) => s + f.falta * (f.nu.k === 'grasa' ? 9 : f.nu.k === 'fibra' ? 0 : 4), 0);
   let titular;
-  if (queda <= 0) titular = 'Ya llegaste a tus 1500 kcal de hoy. Si aparece hambre de verdad, ve por verdura libre, gelatina light o una bebida sin azúcar.';
+  if (queda <= 0) titular = `Ya llegaste a tus ${META_KCAL} kcal de hoy. Si aparece hambre de verdad, ve por verdura libre, gelatina light o una bebida sin azúcar.`;
   else if (!faltas.length) titular = `Tus macros van en meta. Te quedan ${queda} kcal: mantenlas ligeras, con verdura y proteína magra.`;
-  else if (!dia.items.length) titular = 'Aún no registras nada hoy. Empieza por proteína y fibra, que son las que más cuesta completar.';
-  else titular = `Te quedan ${queda} kcal. Esto es lo que más te conviene ahora:`;
+  else if (!dia.items.length) titular = `Aún no registras nada hoy y tienes ${queda} kcal. Empieza por proteína y fibra, que son las que más cuesta completar.`;
+  else titular = `Te quedan ${queda} kcal. Esto es lo que más te conviene ahora, con las porciones ya ajustadas a eso:`;
   const avisos = [];
+  if (sugeridos.length) avisos.push(`La primera opción de cada renglón suma ${usado} kcal de las ${queda} que te quedan.`);
   if (queda > 0 && kcalFaltas > queda + 100) avisos.push('No todo va a caber en las calorías que quedan: dale prioridad a la proteína y a la fibra.');
   if (margenGrasa < 0) avisos.push('Ya pasaste tus grasas de hoy: cocina con spray o agua y deja aguacate, semillas y quesos para mañana.');
   if (margenCarb < 0) avisos.push('Carbohidratos completos por hoy: usa de base coliflor, fideos shirataki o más verdura.');
@@ -1037,24 +1084,28 @@ function pintarSugerencias() {
 }
 $sug.addEventListener('click', e => {
   if (!e.target.closest('#usar-sugeridos')) return;
-  seleccion = new Set(sugeridos.filter(id => IDX[id])); esEjemplo = false;
+  seleccion = new Set(sugeridos.map(o => o.id).filter(id => IDX[id])); esEjemplo = false;
   guardar(); pintarMatriz(); contar(); generar(true);
 });
-function sumarAlDia(c) {
+function sumarAlDia(c, x) {
   if (dia.fecha !== hoy()) dia = { fecha: hoy(), items: [] };
   const hora = new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
-  dia.items.push({ hora, n: c.n, kcal: c.kcal, prot: c.prot, fibra: c.fibra, grasa: c.grasa, carb: c.carb });
+  dia.items.push({ hora, n: c.n, kcal: c.kcal, prot: c.prot, fibra: c.fibra, grasa: c.grasa, carb: c.carb, x: x || 1 });
   guardarDia(); pintarDia();
 }
 $registro.addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b) return;
-  dia.items.splice(+b.dataset.i, 1); guardarDia(); pintarDia();
+  const it = dia.items[+b.dataset.i]; if (!it) return;
+  if (b.dataset.d) it.x = Math.min(4, Math.max(.25, (+it.x || 1) + +b.dataset.d));
+  else dia.items.splice(+b.dataset.i, 1);
+  guardarDia(); pintarDia();
 });
 document.getElementById('reiniciar-dia').addEventListener('click', () => {
   if (!dia.items.length || !confirm('¿Borrar todo lo registrado hoy?')) return;
   dia = { fecha: hoy(), items: [] }; guardarDia(); pintarDia();
 });
 pintarDia();
+generar(false);
 
 const leerKey = () => { try { return localStorage.getItem(CLAVE_API) || ''; } catch (e) { return ''; } };
 $key.value = leerKey();
@@ -1097,7 +1148,7 @@ function reducir(file) {
 async function analizar(b64) {
   const num = { type: 'NUMBER' };
   const prompt = `Eres la nutrióloga de Andrea. Analiza la foto de esta comida (probablemente cocina casera mexicana) y estima, para la porción que se ve, calorías y gramos de proteína, fibra, grasa y carbohidratos. Sé realista con aceite, crema y queso ocultos.
-Plan diario de la persona: máximo 1500 kcal, proteína 80-90 g, fibra 25-30 g, grasas 35-40 g, carbohidratos 110-130 g.
+Plan diario de la persona: máximo ${META_KCAL} kcal, proteína 80-90 g, fibra 25-30 g, grasas 35-40 g, carbohidratos 110-130 g.
 Hoy lleva registrado: ${total('kcal')} kcal, ${total('prot')} g de proteína, ${total('fibra')} g de fibra, ${total('grasa')} g de grasa y ${total('carb')} g de carbohidratos.
 Responde en español. "nombre" es un nombre corto del platillo. "alimentos" lista lo que ves con su porción aproximada. "consejo" es una sola frase amable y concreta (máximo 25 palabras) sobre cómo encaja este plato en lo que le queda del día o qué ajustar. Si la foto no muestra comida, pon "esComida" en false y los números en 0.`;
   return llamarGemini({
@@ -1147,7 +1198,7 @@ async function alElegirFoto(e) {
     avisoFoto('');
     const r = n => Math.max(0, Math.round(+n || 0));
     pendiente = { n: a.nombre || 'Comida', kcal: r(a.kcal), prot: r(a.proteina), fibra: r(a.fibra), grasa: r(a.grasa), carb: r(a.carbohidratos) };
-    const queda = 1500 - total('kcal') - pendiente.kcal;
+    const queda = META_KCAL - total('kcal') - pendiente.kcal;
     $analisis.innerHTML = `<div class="analisis">
       <div class="analisis-top"><img src="data:image/jpeg;base64,${b64}" alt="Foto de tu comida">
         <div><p class="eyebrow">Estimación de Gemini</p><h3>${esc(pendiente.n)}</h3><p class="nota">${esc((a.alimentos || []).join(' · '))}</p></div></div>
@@ -1158,7 +1209,7 @@ async function alElegirFoto(e) {
         <div class="macro"><b>${pendiente.grasa} g</b><span>grasa</span></div>
         <div class="macro"><b>${pendiente.carb} g</b><span>carbos</span></div>
       </div>
-      <p class="veredicto${queda < 0 ? ' mal' : ''}">${queda < 0 ? `Con este plato pasarías tus 1500 kcal por ${-queda}.` : `Sí cabe: te quedarían ${queda} kcal para hoy.`}</p>
+      <p class="veredicto${queda < 0 ? ' mal' : ''}">${queda < 0 ? `Con este plato pasarías tus ${META_KCAL} kcal por ${-queda}. Súmalo y baja la porción en tu registro si comes menos.` : `Sí cabe: te quedarían ${queda} kcal para hoy.`}</p>
       <p>${esc(a.consejo || '')}</p>
       <p class="nota">Es un cálculo aproximado a partir de la foto.</p>
       <div class="receta-acciones">

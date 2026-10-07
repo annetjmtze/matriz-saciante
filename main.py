@@ -13,6 +13,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 PAGINA = Path(__file__).parent / "Matriz Saciante.html"
+IMAGENES = {"/porciones-con-las-manos.jpeg": "porciones-con-las-manos.jpeg"}
 MODELO = os.environ.get("GEMINI_MODEL", "gemini-flash-latest")
 MAX_CUERPO = 6 * 1024 * 1024  # una foto reducida pesa mucho menos
 
@@ -38,6 +39,8 @@ class Servidor(BaseHTTPRequestHandler):
         ruta = self.path.split("?")[0]
         if ruta in ("/", "/index.html"):
             self.responder(200, PAGINA.read_bytes(), "text/html; charset=utf-8")
+        elif ruta in IMAGENES:
+            self.responder(200, (PAGINA.parent / IMAGENES[ruta]).read_bytes(), "image/jpeg")
         elif ruta == "/api/estado":
             self.json(200, {"gemini": bool(clave())})
         else:
